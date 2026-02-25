@@ -1,7 +1,8 @@
 """Forward translation: Anthropic Messages API -> OpenAI Chat Completions API.
 
 Handles system prompt extraction, content block flattening, tool_use
-to tool_calls, and tool_result to tool role messages.
+to tool_calls, and tool_result to tool role messages. Forwards
+translated requests to Inception Labs Mercury 2.
 """
 
 from __future__ import annotations
@@ -21,7 +22,7 @@ _config = TranslationConfig()
 logger = get_logger("forward")
 
 # Content block types that belong to Anthropic's thinking feature.
-# These are stripped from messages when forwarding to xAI.
+# These are stripped from messages when forwarding to Mercury.
 _THINKING_BLOCK_TYPES: frozenset[str] = frozenset({
     "thinking",
     "redacted_thinking",
@@ -32,8 +33,8 @@ def strip_thinking(request: dict[str, Any]) -> list[str]:
     """Strip thinking-related fields from an Anthropic request.
 
     Removes the top-level 'thinking' parameter and any thinking/redacted_thinking
-    content blocks from messages. Grok models reason internally and do not need
-    (or support) explicit thinking parameters.
+    content blocks from messages. Mercury models use diffusion-based reasoning
+    internally and do not need (or support) explicit thinking parameters.
 
     Returns a list of warning strings for stripped features.
     """
@@ -43,7 +44,7 @@ def strip_thinking(request: dict[str, Any]) -> list[str]:
         if feature in request and request[feature]:
             warnings.append(
                 f"'{feature}' parameter stripped. "
-                f"Grok models reason internally; response quality is not affected."
+                f"Mercury models reason internally; response quality is not affected."
             )
             del request[feature]
 
@@ -93,7 +94,7 @@ def anthropic_to_openai(request: dict[str, Any]) -> dict[str, Any]:
     for feature in UNSUPPORTED_FEATURES:
         if feature in request and request[feature]:
             raise NotImplementedError(
-                f"Feature '{feature}' is not supported by the xAI bridge. "
+                f"Feature '{feature}' is not supported by the Mercury bridge. "
                 f"Disable it in your Claude Code configuration."
             )
 
@@ -164,13 +165,13 @@ def _translate_single_message(msg: dict[str, Any]) -> list[dict[str, Any]]:
             tool_results.append(_extract_tool_result(block))
         elif bt == "image":
             raise NotImplementedError(
-                "Image content blocks are not supported by the xAI bridge. "
+                "Image content blocks are not supported by the Mercury bridge. "
                 "Vision features require native Anthropic API."
             )
         else:
             raise NotImplementedError(
                 f"Unsupported content block type: '{bt}'. "
-                f"The xAI bridge only supports text, tool_use, and tool_result."
+                f"The Mercury bridge only supports text, tool_use, and tool_result."
             )
 
     if tool_results:

@@ -1,8 +1,8 @@
-"""Claude Code xAI Bridge -- Anthropic Messages API to xAI Grok proxy.
+"""Claude Code Mercury Bridge -- Anthropic Messages API to Mercury 2 proxy.
 
 Receives Claude Code traffic on /v1/messages, translates to OpenAI format,
-forwards to xAI, translates response back. Enrichment hooks inject Agentic
-API Standard context.
+forwards to Inception Labs Mercury 2, translates response back. Enrichment
+hooks inject Agentic API Standard context.
 """
 
 from fastapi import FastAPI, Request
@@ -25,12 +25,12 @@ load_dotenv()
 configure_logging()
 logger = get_logger("main")
 
-app = FastAPI(title="xai-agentic-claude-bridge")
-XAI_API_KEY = os.getenv("XAI_API_KEY", "")
-if not XAI_API_KEY:
-    logger.warning("XAI_API_KEY not set. Requests to xAI will fail.")
+app = FastAPI(title="mercury-agentic-claude-bridge")
+MERCURY_API_KEY = os.getenv("MERCURY_API_KEY", "")
+if not MERCURY_API_KEY:
+    logger.warning("MERCURY_API_KEY not set. Requests to Mercury will fail.")
 
-client = httpx.AsyncClient(base_url="https://api.x.ai/v1", timeout=120.0)
+client = httpx.AsyncClient(base_url="https://api.inceptionlabs.ai/v1", timeout=120.0)
 
 enricher = create_enricher()
 set_tool_enrichment_hook(enricher.enrich)
@@ -47,7 +47,7 @@ async def get_manifest() -> dict:
 async def health() -> dict:
     return {
         "status": "healthy",
-        "model": os.getenv("GROK_MODEL", "grok-4-1-fast-reasoning"),
+        "model": os.getenv("MERCURY_MODEL", "mercury-2"),
         "enrichment_mode": enricher.config.mode,
     }
 
@@ -83,7 +83,7 @@ async def messages(request: Request):
         )
         dump_json("request", sanitize_request(openai_body))
 
-        headers = {"Authorization": f"Bearer {XAI_API_KEY}", "Content-Type": "application/json"}
+        headers = {"Authorization": f"Bearer {MERCURY_API_KEY}", "Content-Type": "application/json"}
 
         if openai_body.get("stream"):
             return await _stream(openai_body, headers, bridge_warnings, start, model=openai_body.get("model", ""))
@@ -100,7 +100,7 @@ async def messages(request: Request):
             (choices[0].get("message", {}).get("tool_calls") or []) if choices else []
         )
         logger.info(
-            "xAI response in %.2fs status=%d stop=%s tool_calls=%d "
+            "Mercury response in %.2fs status=%d stop=%s tool_calls=%d "
             "tokens=%d/%d/%d",
             elapsed, resp.status_code, stop_reason, tool_calls_count,
             usage.get("prompt_tokens", 0),
@@ -119,7 +119,7 @@ async def messages(request: Request):
         )
 
         # -- Point 3: Full response at DEBUG --
-        logger.debug("xAI response body: %s", json.dumps(data, default=str))
+        logger.debug("Mercury response body: %s", json.dumps(data, default=str))
         dump_json("response", data)
 
         result = translate_response(data, status_code=resp.status_code)
@@ -141,7 +141,7 @@ async def messages(request: Request):
         logger.exception("Bridge error: %s", e)
         return JSONResponse(status_code=500, content={
             "type": "error", "error": {"type": "api_error", "message": str(e),
-                                        "suggestion": "Retry the request. Check XAI_API_KEY."},
+                                        "suggestion": "Retry the request. Check MERCURY_API_KEY."},
             "_links": {"retry": {"href": "/v1/messages", "method": "POST"}, "manifest": {"href": "/manifest"}}})
 
 

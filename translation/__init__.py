@@ -1,6 +1,6 @@
 """Bidirectional Anthropic <-> OpenAI protocol translation layer.
 
-Converts Claude Code (Anthropic Messages API) traffic into xAI/Grok
+Converts Claude Code (Anthropic Messages API) traffic into Mercury 2
 (OpenAI Chat Completions API) format and back. Custom translation with
 enrichment injection hooks at every boundary.
 """

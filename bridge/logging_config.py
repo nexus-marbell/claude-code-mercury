@@ -1,4 +1,4 @@
-"""Centralized logging configuration for the xAI bridge.
+"""Centralized logging configuration for the Mercury bridge.
 
 Configurable via environment variables:
   LOG_LEVEL     - Root log level (default: INFO). Options: DEBUG, INFO, WARNING, ERROR.

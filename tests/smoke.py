@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Smoke test for the Claude Code xAI Bridge.
+"""Smoke test for the Claude Code Mercury Bridge.
 
 Sends a known request with tool definitions through the bridge and verifies:
   1. Bridge starts and serves endpoints (manifest, health)
@@ -7,12 +7,12 @@ Sends a known request with tool definitions through the bridge and verifies:
   3. Request/response translation works end-to-end
 
 Modes:
-  - Mock mode (default, no XAI_API_KEY): Uses mocked xAI responses for CI
-  - Live mode (XAI_API_KEY set): Sends real requests to xAI API
+  - Mock mode (default, no MERCURY_API_KEY): Uses mocked Mercury responses for CI
+  - Live mode (MERCURY_API_KEY set): Sends real requests to Mercury API
 
 Usage:
     python tests/smoke.py              # mock mode
-    XAI_API_KEY=sk-... python tests/smoke.py  # live mode
+    MERCURY_API_KEY=sk-... python tests/smoke.py  # live mode
 """
 
 from __future__ import annotations
@@ -76,7 +76,7 @@ SAMPLE_REQUEST = {
     "tools": SAMPLE_TOOLS,
 }
 
-MOCK_XAI_RESPONSE = {
+MOCK_MERCURY_RESPONSE = {
     "id": "chatcmpl-smoke-001",
     "object": "chat.completion",
     "choices": [{
@@ -143,7 +143,7 @@ def check_manifest(client: TestClient, r: Results) -> None:
         r.fail("manifest", f"status {resp.status_code}")
         return
     data = resp.json()
-    if data.get("name") != "Claude Code xAI Bridge":
+    if data.get("name") != "Claude Code Mercury Bridge":
         r.fail("manifest.name", f"got '{data.get('name')}'")
         return
     modes = set(data.get("enrichment_modes", []))
@@ -203,14 +203,14 @@ def check_enrichment(r: Results) -> None:
 
 
 def check_translation_mock(client: TestClient, r: Results) -> None:
-    """Verify request translation with mocked xAI backend."""
+    """Verify request translation with mocked Mercury backend."""
     captured: dict = {}
 
     async def capture_post(*args, **kwargs):
         captured.update(kwargs.get("json", {}))
         mock_resp = MagicMock()
         mock_resp.status_code = 200
-        mock_resp.json.return_value = MOCK_XAI_RESPONSE
+        mock_resp.json.return_value = MOCK_MERCURY_RESPONSE
         return mock_resp
 
     import main
@@ -221,15 +221,15 @@ def check_translation_mock(client: TestClient, r: Results) -> None:
         r.fail("translation.request", f"status {resp.status_code}: {resp.text[:200]}")
         return
 
-    # Check the captured request sent to xAI
+    # Check the captured request sent to Mercury
     if not captured:
         r.fail("translation.request", "no request captured")
         return
 
     # Verify model was mapped
     model = captured.get("model", "")
-    if "grok" not in model:
-        r.fail("translation.model_map", f"model not mapped to Grok: '{model}'")
+    if "mercury" not in model:
+        r.fail("translation.model_map", f"model not mapped to Mercury: '{model}'")
     else:
         r.ok("translation.model_map", f"→ {model}")
 
@@ -268,7 +268,7 @@ def check_translation_mock(client: TestClient, r: Results) -> None:
 
 
 def check_translation_live(client: TestClient, r: Results) -> None:
-    """Send a real request to xAI and verify end-to-end."""
+    """Send a real request to Mercury and verify end-to-end."""
     # Simple request without tools — just verify connectivity
     resp = client.post("/v1/messages", json={
         "model": "claude-sonnet-4-20250514",
@@ -284,9 +284,9 @@ def check_translation_live(client: TestClient, r: Results) -> None:
 
     data = resp.json()
     text = data.get("content", [{}])[0].get("text", "")
-    r.ok("live.simple", f"Grok replied: '{text[:80]}'")
+    r.ok("live.simple", f"Mercury replied: '{text[:80]}'")
 
-    # Request with tools — verify enrichment reaches xAI
+    # Request with tools — verify enrichment reaches Mercury
     resp = client.post("/v1/messages", json=SAMPLE_REQUEST)
     if resp.status_code != 200:
         r.fail("live.with_tools", f"status {resp.status_code}")
@@ -333,12 +333,12 @@ def check_thinking_stripped(client: TestClient, r: Results) -> None:
 # ── Main ───────────────────────────────────────────────────────────────
 def main() -> int:
     r = Results()
-    api_key = os.getenv("XAI_API_KEY", "")
+    api_key = os.getenv("MERCURY_API_KEY", "")
     live = bool(api_key)
 
     print(f"{'=' * 60}")
-    print(f"  Claude Code xAI Bridge — Smoke Test")
-    print(f"  Mode: {'LIVE (XAI_API_KEY set)' if live else 'MOCK (no XAI_API_KEY)'}")
+    print(f"  Claude Code Mercury Bridge — Smoke Test")
+    print(f"  Mode: {'LIVE (MERCURY_API_KEY set)' if live else 'MOCK (no MERCURY_API_KEY)'}")
     print(f"{'=' * 60}\n")
 
     from main import app
@@ -372,16 +372,16 @@ def main() -> int:
 
     # ── Live checks (only if API key present) ──
     if live:
-        print("\n[Live xAI API]")
+        print("\n[Live Mercury API]")
         try:
             check_translation_live(client, r)
         except Exception as e:
             r.fail("live", f"exception: {e}")
             traceback.print_exc()
     else:
-        print("\n[Live xAI API]")
-        r.skip("live.simple", "no XAI_API_KEY")
-        r.skip("live.with_tools", "no XAI_API_KEY")
+        print("\n[Live Mercury API]")
+        r.skip("live.simple", "no MERCURY_API_KEY")
+        r.skip("live.with_tools", "no MERCURY_API_KEY")
 
     return r.summary()
 

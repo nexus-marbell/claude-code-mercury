@@ -2,7 +2,7 @@
 
 Tests bridge startup, endpoint responses, enrichment mode toggling,
 error handling, and request translation — all without requiring a live
-xAI API key.
+Mercury API key.
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ def client():
     return TestClient(app)
 
 
-def _mock_xai_response(data: dict, status_code: int = 200):
+def _mock_mercury_response(data: dict, status_code: int = 200):
     """Create a mock httpx response that works with async client."""
     mock_resp = MagicMock()
     mock_resp.status_code = status_code
@@ -44,7 +44,7 @@ class TestBridgeStartup:
 
     def test_manifest_has_required_fields(self, client: TestClient) -> None:
         data = client.get("/manifest").json()
-        assert data["name"] == "Claude Code xAI Bridge"
+        assert data["name"] == "Claude Code Mercury Bridge"
         assert "messages" in data["capabilities"]
         assert "tools" in data["capabilities"]
         assert "streaming" in data["capabilities"]
@@ -78,7 +78,7 @@ class TestErrorHandling:
 
     def test_thinking_feature_stripped_not_rejected(self, client: TestClient) -> None:
         """Thinking param is gracefully stripped, not rejected with 400."""
-        mock_post, _ = _mock_xai_response({
+        mock_post, _ = _mock_mercury_response({
             "id": "chatcmpl-think1",
             "object": "chat.completion",
             "choices": [{
@@ -120,11 +120,11 @@ class TestErrorHandling:
 
 
 class TestRequestTranslation:
-    """Verify requests are correctly translated before reaching xAI."""
+    """Verify requests are correctly translated before reaching Mercury."""
 
     def test_simple_text_round_trip(self, client: TestClient) -> None:
-        """Mock xAI and verify full Anthropic → OpenAI → Anthropic translation."""
-        mock_post, mock_resp = _mock_xai_response({
+        """Mock Mercury and verify full Anthropic → OpenAI → Anthropic translation."""
+        mock_post, mock_resp = _mock_mercury_response({
             "id": "chatcmpl-123",
             "object": "chat.completion",
             "choices": [{
@@ -156,7 +156,7 @@ class TestRequestTranslation:
             assert data["stop_reason"] == "end_turn"
             assert "usage" in data
 
-    def test_tool_definitions_reach_xai_enriched(self, client: TestClient) -> None:
+    def test_tool_definitions_reach_mercury_enriched(self, client: TestClient) -> None:
         """Verify tools are enriched and translated to OpenAI format."""
         captured_request = {}
 
@@ -203,8 +203,8 @@ class TestRequestTranslation:
             assert tool["function"]["name"] == "Read"
 
     def test_tool_use_response_translated(self, client: TestClient) -> None:
-        """Verify tool_calls from Grok become Anthropic tool_use blocks."""
-        mock_post, _ = _mock_xai_response({
+        """Verify tool_calls from Mercury become Anthropic tool_use blocks."""
+        mock_post, _ = _mock_mercury_response({
             "id": "chatcmpl-789",
             "object": "chat.completion",
             "choices": [{
@@ -299,7 +299,7 @@ class TestEnrichmentModeToggle:
             importlib.reload(enrichment.system_preamble)
             from enrichment.system_preamble import get_system_preamble
             result = get_system_preamble()
-            assert "You are Grok" in result
+            assert "You are Mercury" in result
             assert "Tool Preference Hierarchy" not in result
 
     def test_preamble_enabled(self) -> None:
@@ -312,4 +312,4 @@ class TestEnrichmentModeToggle:
             result = get_system_preamble()
             assert len(result) > 0
             assert "Tool Preference Hierarchy" in result
-            assert "You are Grok" in result
+            assert "You are Mercury" in result

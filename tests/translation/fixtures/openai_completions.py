@@ -1,6 +1,6 @@
 """Sample OpenAI Chat Completions API payloads for translation testing.
 
-These fixtures represent what xAI/Grok returns. The reverse translator
+These fixtures represent what Mercury returns. The reverse translator
 converts these into Anthropic Messages API format for Claude Code.
 """
 
@@ -13,7 +13,7 @@ def simple_completion() -> dict[str, Any]:
         "id": "chatcmpl-abc123def456",
         "object": "chat.completion",
         "created": 1709000000,
-        "model": "grok-4-1-fast-reasoning",
+        "model": "mercury-2",
         "choices": [
             {
                 "index": 0,
@@ -43,7 +43,7 @@ def tool_call_completion() -> dict[str, Any]:
         "id": "chatcmpl-tool789xyz",
         "object": "chat.completion",
         "created": 1709000100,
-        "model": "grok-4-1-fast-reasoning",
+        "model": "mercury-2",
         "choices": [
             {
                 "index": 0,
@@ -78,7 +78,7 @@ def multi_tool_call_completion() -> dict[str, Any]:
         "id": "chatcmpl-multi456",
         "object": "chat.completion",
         "created": 1709000200,
-        "model": "grok-4-1-fast-reasoning",
+        "model": "mercury-2",
         "choices": [
             {
                 "index": 0,
@@ -125,7 +125,7 @@ def streaming_chunk() -> dict[str, Any]:
         "id": "chatcmpl-stream001",
         "object": "chat.completion.chunk",
         "created": 1709000300,
-        "model": "grok-4-1-fast-reasoning",
+        "model": "mercury-2",
         "choices": [
             {
                 "index": 0,
@@ -144,7 +144,7 @@ def streaming_chunk_with_role() -> dict[str, Any]:
         "id": "chatcmpl-stream001",
         "object": "chat.completion.chunk",
         "created": 1709000300,
-        "model": "grok-4-1-fast-reasoning",
+        "model": "mercury-2",
         "choices": [
             {
                 "index": 0,
@@ -168,7 +168,7 @@ def streaming_chunk_tool_call() -> dict[str, Any]:
         "id": "chatcmpl-stream002",
         "object": "chat.completion.chunk",
         "created": 1709000310,
-        "model": "grok-4-1-fast-reasoning",
+        "model": "mercury-2",
         "choices": [
             {
                 "index": 0,
@@ -197,7 +197,7 @@ def streaming_chunk_finish() -> dict[str, Any]:
         "id": "chatcmpl-stream001",
         "object": "chat.completion.chunk",
         "created": 1709000300,
-        "model": "grok-4-1-fast-reasoning",
+        "model": "mercury-2",
         "choices": [
             {
                 "index": 0,
@@ -214,7 +214,7 @@ def streaming_chunk_finish() -> dict[str, Any]:
 
 
 def error_response_429() -> dict[str, Any]:
-    """Rate limit error from the xAI API."""
+    """Rate limit error from the Mercury API."""
     return {
         "error": {
             "message": "Rate limit exceeded. Please retry after 30 seconds.",
@@ -225,7 +225,7 @@ def error_response_429() -> dict[str, Any]:
 
 
 def error_response_500() -> dict[str, Any]:
-    """Internal server error from the xAI API."""
+    """Internal server error from the Mercury API."""
     return {
         "error": {
             "message": "Internal server error. The model encountered an unexpected condition.",

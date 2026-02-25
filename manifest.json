@@ -1,9 +1,9 @@
 {
-  "name": "Claude Code xAI Bridge",
+  "name": "Claude Code Mercury Bridge",
   "version": "1.0.0",
-  "description": "Bidirectional Anthropic-OpenAI protocol translation with Agentic API Standard enrichment",
+  "description": "Bidirectional Anthropic-OpenAI protocol translation with Agentic API Standard enrichment for Mercury 2",
   "capabilities": ["messages", "tools", "streaming"],
-  "default_model": "grok-4-1-fast-reasoning",
+  "default_model": "mercury-2",
   "enrichment_modes": ["passthrough", "structural", "full"],
   "_links": {
     "self": {"href": "/manifest"},

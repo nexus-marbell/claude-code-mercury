@@ -49,9 +49,9 @@ class TestToolCallingRoundTrip:
         assert openai_request.get("tools") is not None
         assert len(openai_request["tools"]) == 6
 
-        # Step 2: Simulate Grok responding with a tool call
-        grok_response = tool_call_completion()
-        anthropic_response = openai_to_anthropic(grok_response)
+        # Step 2: Simulate Mercury responding with a tool call
+        mercury_response = tool_call_completion()
+        anthropic_response = openai_to_anthropic(mercury_response)
 
         # Verify tool_use block exists
         tool_blocks = [b for b in anthropic_response["content"] if b["type"] == "tool_use"]

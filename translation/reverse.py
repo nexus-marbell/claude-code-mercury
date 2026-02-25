@@ -1,6 +1,6 @@
 """Reverse translation: OpenAI Chat Completions -> Anthropic Messages API.
 
-Converts xAI/Grok responses back to Claude Code format: content blocks,
+Converts Mercury responses back to Claude Code format: content blocks,
 tool_use blocks, stop_reason mapping, usage translation, error formatting.
 """
 
@@ -31,7 +31,7 @@ _LITERAL_ESCAPE_RE = re.compile(r"(?<!\\)\\([ntr])")
 def unescape_text(text: str) -> str:
     """Unescape literal backslash-n/t/r sequences in model output text.
 
-    xAI/Grok may return text with literal two-character escape sequences
+    Mercury may return text with literal two-character escape sequences
     (backslash + n) instead of actual newline characters. This converts
     them to real control characters so Claude Code renders them correctly.
 
@@ -50,10 +50,10 @@ _ERROR_TYPE_MAP: dict[str, str] = {
 }
 
 _ERROR_SUGGESTIONS: dict[int, str] = {
-    429: "Rate limited by xAI. Wait and retry, or reduce request frequency.",
-    500: "xAI internal error. Retry the request. If persistent, simplify tool schemas.",
+    429: "Rate limited by Mercury API. Wait and retry, or reduce request frequency.",
+    500: "Mercury API internal error. Retry the request. If persistent, simplify tool schemas.",
     400: "Invalid request format. Check message structure and tool definitions.",
-    401: "Authentication failed. Verify XAI_API_KEY is set correctly.",
+    401: "Authentication failed. Verify MERCURY_API_KEY is set correctly.",
     403: "Access denied. Check API key permissions for the requested model.",
 }
 
@@ -74,7 +74,7 @@ def openai_to_anthropic(response: dict[str, Any]) -> dict[str, Any]:
     usage = response.get("usage")
     return {
         "id": rid, "type": "message", "role": "assistant", "content": content,
-        "model": response.get("model", "grok-4-1-fast-reasoning"),
+        "model": response.get("model", "mercury-2"),
         "stop_reason": _config.map_stop_reason(choice.get("finish_reason")),
         "stop_sequence": None,
         "usage": {"input_tokens": (usage or {}).get("prompt_tokens", 0),
@@ -138,7 +138,7 @@ def _translate_error(error_body: dict[str, Any], status_code: int) -> dict[str, 
         "type": "error",
         "error": {
             "type": atype,
-            "message": error_data.get("message", "Unknown error from xAI API."),
+            "message": error_data.get("message", "Unknown error from Mercury API."),
             "suggestion": _ERROR_SUGGESTIONS.get(status_code, "Retry the request."),
         },
         "_links": {"retry": {"href": "/v1/messages", "method": "POST"}, "manifest": {"href": "/manifest"}},

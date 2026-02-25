@@ -2,7 +2,7 @@
 
 These tests cover unusual, malformed, or boundary-condition inputs that
 the translator must handle gracefully. Real-world traffic from Claude Code
-and xAI will include unexpected payloads — the translator must never crash.
+and Mercury will include unexpected payloads — the translator must never crash.
 """
 
 import json

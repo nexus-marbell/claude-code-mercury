@@ -51,7 +51,7 @@ def minimal_structure(tmp_path: Path) -> Path:
         "schema_version": "1.0",
         "type": "preamble",
         "name": "identity",
-        "text": "You are Grok.",
+        "text": "You are Mercury.",
     })
     return tmp_path
 
@@ -153,7 +153,7 @@ class TestRealStructure:
         loader = StructureLoader(full_structure)
         data = loader.load()
         assert "text" in data["preamble"]["identity"]
-        assert "Grok" in data["preamble"]["identity"]["text"]
+        assert "Mercury" in data["preamble"]["identity"]["text"]
 
 
 # ---------------------------------------------------------------------------

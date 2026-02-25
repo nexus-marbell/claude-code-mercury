@@ -270,11 +270,11 @@ class TestStreamErrorHandling:
         """A malformed JSON chunk is skipped without crashing the stream."""
         lines = [
             'data: {"id":"test","object":"chat.completion.chunk","created":1709000300,'
-            '"model":"grok-4-1-fast-reasoning","choices":[{"index":0,"delta":'
+            '"model":"mercury-2","choices":[{"index":0,"delta":'
             '{"role":"assistant","content":""},"finish_reason":null}]}',
             "data: {INVALID JSON}",
             'data: {"id":"test","object":"chat.completion.chunk","created":1709000300,'
-            '"model":"grok-4-1-fast-reasoning","choices":[{"index":0,"delta":'
+            '"model":"mercury-2","choices":[{"index":0,"delta":'
             '{"content":"hello"},"finish_reason":null}]}',
             "data: [DONE]",
         ]
@@ -294,7 +294,7 @@ class TestStreamErrorHandling:
     async def test_connection_drop_produces_error_event(self) -> None:
         """If the source iterator raises an exception, an error event is produced."""
         async def failing_source() -> AsyncIterator[str]:
-            yield 'data: {"id":"test","object":"chat.completion.chunk","created":1709000300,"model":"grok-4-1-fast-reasoning","choices":[{"index":0,"delta":{"role":"assistant","content":""},"finish_reason":null}]}'
+            yield 'data: {"id":"test","object":"chat.completion.chunk","created":1709000300,"model":"mercury-2","choices":[{"index":0,"delta":{"role":"assistant","content":""},"finish_reason":null}]}'
             raise ConnectionError("Connection reset by peer")
 
         adapter = OpenAIToAnthropicStreamAdapter(failing_source())
@@ -313,11 +313,11 @@ class TestStreamErrorHandling:
         lines = [
             ": heartbeat",
             'data: {"id":"test","object":"chat.completion.chunk","created":1709000300,'
-            '"model":"grok-4-1-fast-reasoning","choices":[{"index":0,"delta":'
+            '"model":"mercury-2","choices":[{"index":0,"delta":'
             '{"role":"assistant","content":""},"finish_reason":null}]}',
             "event: ping",
             'data: {"id":"test","object":"chat.completion.chunk","created":1709000300,'
-            '"model":"grok-4-1-fast-reasoning","choices":[{"index":0,"delta":'
+            '"model":"mercury-2","choices":[{"index":0,"delta":'
             '{"content":"test"},"finish_reason":null}]}',
             "data: [DONE]",
         ]

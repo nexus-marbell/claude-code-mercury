@@ -12,13 +12,13 @@ from dataclasses import dataclass, field
 from enrichment.system_preamble import get_system_preamble
 
 
-# Anthropic model name -> xAI/Grok model name
+# Anthropic model name -> Inception Labs Mercury model name
 MODEL_MAP: dict[str, str] = {
-    "claude-sonnet-4-20250514": "grok-4-1-fast-reasoning",
-    "claude-opus-4-20250514": "grok-4",
-    "claude-haiku-3-20240307": "grok-4-1-fast-reasoning",
-    "claude-3-5-sonnet-20241022": "grok-4-1-fast-reasoning",
-    "claude-3-5-haiku-20241022": "grok-4-1-fast-reasoning",
+    "claude-sonnet-4-20250514": "mercury-2",
+    "claude-opus-4-20250514": "mercury-2",
+    "claude-haiku-3-20240307": "mercury-2",
+    "claude-3-5-sonnet-20241022": "mercury-2",
+    "claude-3-5-haiku-20241022": "mercury-2",
 }
 
 # OpenAI finish_reason -> Anthropic stop_reason
@@ -40,7 +40,7 @@ DEGRADED_FEATURES: frozenset[str] = frozenset({
 # Features that fail loudly (raise NotImplementedError)
 UNSUPPORTED_FEATURES: frozenset[str] = frozenset()
 
-# Features stripped from requests (Grok handles reasoning internally)
+# Features stripped from requests (Mercury handles reasoning internally)
 STRIPPED_FEATURES: frozenset[str] = frozenset({
     "thinking",
 })
@@ -50,19 +50,19 @@ STRIPPED_FEATURES: frozenset[str] = frozenset({
 class TranslationConfig:
     """Immutable translation configuration."""
 
-    default_model: str = "grok-4-1-fast-reasoning"
+    default_model: str = "mercury-2"
     default_temperature: float = 0.7
     default_max_tokens: int = 8192
     system_prompt_preamble: str = field(
         default_factory=get_system_preamble
     )
-    xai_api_key: str = field(
-        default_factory=lambda: os.getenv("XAI_API_KEY", "")
+    mercury_api_key: str = field(
+        default_factory=lambda: os.getenv("MERCURY_API_KEY", "")
     )
 
     def resolve_model(self, anthropic_model: str) -> str:
-        """Map an Anthropic model name to a Grok model name."""
-        env_model = os.getenv("GROK_MODEL")
+        """Map an Anthropic model name to a Mercury model name."""
+        env_model = os.getenv("MERCURY_MODEL")
         if env_model:
             return env_model
         return MODEL_MAP.get(anthropic_model, self.default_model)

@@ -260,11 +260,11 @@ class TestRequestLevelFields:
         assert result["max_tokens"] == 4096
 
     def test_model_is_overridden(self) -> None:
-        """The Anthropic model is replaced with the target Grok model."""
+        """The Anthropic model is replaced with the target Mercury model."""
         request = system_message_request()
         result = anthropic_to_openai(request)
 
-        # The forward translator should set the xAI model, not pass through Claude model
+        # The forward translator should set the Mercury model, not pass through Claude model
         assert "claude" not in result.get("model", "").lower()
 
     def test_temperature_default(self) -> None:
@@ -467,7 +467,7 @@ class TestListTypeSystemInForwardTranslation:
         }
         result = anthropic_to_openai(request)
         system_msg = result["messages"][0]
-        assert "You are Grok" in system_msg["content"]
+        assert "You are Mercury" in system_msg["content"]
         assert "Tool Preference Hierarchy" in system_msg["content"]
         assert "You are a coding assistant." in system_msg["content"]
 
@@ -513,7 +513,7 @@ class TestListTypeSystemInForwardTranslation:
         assert "knowledge cutoff" not in system_msg["content"]
         assert "claude_background_info" not in system_msg["content"]
         # Preamble injected
-        assert "You are Grok" in system_msg["content"]
+        assert "You are Mercury" in system_msg["content"]
         # Non-identity content preserved
         assert "expert coding assistant" in system_msg["content"]
         # Stream flag preserved
@@ -532,5 +532,5 @@ class TestListTypeSystemInForwardTranslation:
         result = anthropic_to_openai(request)
         system_msg = result["messages"][0]
         assert system_msg["role"] == "system"
-        assert "You are Grok" in system_msg["content"]
+        assert "You are Mercury" in system_msg["content"]
         assert "powered by Claude" not in system_msg["content"]

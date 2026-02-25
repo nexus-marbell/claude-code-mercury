@@ -95,10 +95,10 @@ class TestLogTokenUsage:
                 enrichment_overhead_tokens=20,
                 elapsed_seconds=1.5,
                 is_streaming=False,
-                model="grok-4-1-fast-reasoning",
+                model="mercury-2",
             )
         msg = caplog.records[0].message
-        assert "model=grok-4-1-fast-reasoning" in msg
+        assert "model=mercury-2" in msg
         assert "input=100" in msg
         assert "output=50" in msg
         assert "total=150" in msg

@@ -1,8 +1,8 @@
 """Tests for newline unescaping in response text.
 
-Verifies that literal escape sequences (backslash-n, backslash-t) in Grok's
+Verifies that literal escape sequences (backslash-n, backslash-t) in Mercury's
 response text are converted to real control characters before reaching Claude
-Code. This fixes the "escaped newlines in plan output" bug where Grok returns
+Code. This fixes the "escaped newlines in plan output" bug where Mercury returns
 text with literal \\n instead of actual newline characters.
 
 Coverage:
@@ -39,7 +39,7 @@ def _completion_with_content(content: str) -> dict[str, Any]:
         "id": "chatcmpl-newline-test",
         "object": "chat.completion",
         "created": 1709000000,
-        "model": "grok-4-1-fast-reasoning",
+        "model": "mercury-2",
         "choices": [
             {
                 "index": 0,
@@ -57,7 +57,7 @@ def _streaming_chunk_with_content(content: str) -> dict[str, Any]:
         "id": "chatcmpl-stream-nl",
         "object": "chat.completion.chunk",
         "created": 1709000300,
-        "model": "grok-4-1-fast-reasoning",
+        "model": "mercury-2",
         "choices": [
             {
                 "index": 0,
@@ -147,7 +147,7 @@ class TestUnescapeText:
         assert unescape_text(text) == expected
 
     def test_plan_output_realistic(self) -> None:
-        """Realistic plan output from Grok with literal newlines throughout."""
+        """Realistic plan output from Mercury with literal newlines throughout."""
         text = (
             "Here is my plan:\\n"
             "\\n"
@@ -178,7 +178,7 @@ class TestNonStreamingNewlines:
     """Multiline content through the non-streaming reverse translator."""
 
     def test_literal_newlines_in_response_unescaped(self) -> None:
-        """Literal \\n in Grok response text becomes real newlines."""
+        """Literal \\n in Mercury response text becomes real newlines."""
         response = _completion_with_content("Step 1\\nStep 2\\nStep 3")
         result = openai_to_anthropic(response)
         text = result["content"][0]["text"]
@@ -186,7 +186,7 @@ class TestNonStreamingNewlines:
         assert text.count("\n") == 2
 
     def test_real_newlines_preserved(self) -> None:
-        """Real newlines in Grok response pass through correctly."""
+        """Real newlines in Mercury response pass through correctly."""
         response = _completion_with_content("Step 1\nStep 2\nStep 3")
         result = openai_to_anthropic(response)
         text = result["content"][0]["text"]
@@ -207,7 +207,7 @@ class TestNonStreamingNewlines:
             "id": "chatcmpl-tool-nl",
             "object": "chat.completion",
             "created": 1709000000,
-            "model": "grok-4-1-fast-reasoning",
+            "model": "mercury-2",
             "choices": [
                 {
                     "index": 0,
@@ -242,7 +242,7 @@ class TestNonStreamingNewlines:
     def test_multiline_plan_e2e(self) -> None:
         """Full plan with multiple paragraphs renders with real newlines."""
         # Each \\n in the Python string literal is a literal backslash-n
-        # (two characters), simulating what Grok sends.
+        # (two characters), simulating what Mercury sends.
         plan = (
             "## Implementation Plan\\n"
             "\\n"
@@ -314,28 +314,28 @@ class TestStreamingNewlines:
                 "id": "chatcmpl-nl-stream",
                 "object": "chat.completion.chunk",
                 "created": 1709000300,
-                "model": "grok-4-1-fast-reasoning",
+                "model": "mercury-2",
                 "choices": [{"index": 0, "delta": {"role": "assistant", "content": ""}, "finish_reason": None}],
             },
             {
                 "id": "chatcmpl-nl-stream",
                 "object": "chat.completion.chunk",
                 "created": 1709000300,
-                "model": "grok-4-1-fast-reasoning",
+                "model": "mercury-2",
                 "choices": [{"index": 0, "delta": {"content": "Step 1\\nStep 2"}, "finish_reason": None}],
             },
             {
                 "id": "chatcmpl-nl-stream",
                 "object": "chat.completion.chunk",
                 "created": 1709000300,
-                "model": "grok-4-1-fast-reasoning",
+                "model": "mercury-2",
                 "choices": [{"index": 0, "delta": {"content": "\\nStep 3"}, "finish_reason": None}],
             },
             {
                 "id": "chatcmpl-nl-stream",
                 "object": "chat.completion.chunk",
                 "created": 1709000300,
-                "model": "grok-4-1-fast-reasoning",
+                "model": "mercury-2",
                 "choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}],
                 "usage": {"prompt_tokens": 10, "completion_tokens": 20, "total_tokens": 30},
             },
@@ -368,7 +368,7 @@ class TestStreamingNewlines:
                 "id": "chatcmpl-tool-nl-stream",
                 "object": "chat.completion.chunk",
                 "created": 1709000400,
-                "model": "grok-4-1-fast-reasoning",
+                "model": "mercury-2",
                 "choices": [{
                     "index": 0,
                     "delta": {
@@ -388,7 +388,7 @@ class TestStreamingNewlines:
                 "id": "chatcmpl-tool-nl-stream",
                 "object": "chat.completion.chunk",
                 "created": 1709000400,
-                "model": "grok-4-1-fast-reasoning",
+                "model": "mercury-2",
                 "choices": [{
                     "index": 0,
                     "delta": {
@@ -404,7 +404,7 @@ class TestStreamingNewlines:
                 "id": "chatcmpl-tool-nl-stream",
                 "object": "chat.completion.chunk",
                 "created": 1709000400,
-                "model": "grok-4-1-fast-reasoning",
+                "model": "mercury-2",
                 "choices": [{"index": 0, "delta": {}, "finish_reason": "tool_calls"}],
             },
         ]

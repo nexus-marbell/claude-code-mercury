@@ -1,7 +1,7 @@
 """Tests for reverse translation: OpenAI Chat Completions API -> Anthropic Messages API.
 
 These tests define the contract for the `translation.reverse` module.
-The reverse translator converts xAI/Grok responses back into the format
+The reverse translator converts Mercury responses back into the format
 that Claude Code expects (Anthropic Messages API).
 
 Key responsibilities:

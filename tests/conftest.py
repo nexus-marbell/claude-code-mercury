@@ -175,7 +175,7 @@ def openai_simple_response() -> dict[str, Any]:
         "id": "chatcmpl-test123",
         "object": "chat.completion",
         "created": 1709000000,
-        "model": "grok-4-1-fast-reasoning",
+        "model": "mercury-2",
         "choices": [
             {
                 "index": 0,

@@ -1,15 +1,15 @@
 """Live end-to-end tests for Issue #15 Categories 2-4.
 
-These tests hit the real xAI API through the bridge's ASGI app.
-They require a valid XAI_API_KEY in the environment (or .env file).
+These tests hit the real Mercury API through the bridge's ASGI app.
+They require a valid MERCURY_API_KEY in the environment (or .env file).
 
 Category 2 -- Live Request/Response:
   - Simple text request through the bridge, verify Anthropic response structure
   - Verify id format, type, role, content blocks, model, stop_reason, usage
 
 Category 3 -- Tool Calling:
-  - Send request with tool definition, verify Grok returns tool_use block
-  - Multi-turn: send tool_result back, verify Grok uses result in final response
+  - Send request with tool definition, verify Mercury returns tool_use block
+  - Multi-turn: send tool_result back, verify Mercury uses result in final response
   - Capture outgoing request to verify enrichment was applied
 
 Category 4 -- Streaming:
@@ -18,9 +18,9 @@ Category 4 -- Streaming:
   - Verify assembled content is non-empty
 
 Architecture note:
-  The bridge uses a module-level httpx.AsyncClient (main.client) for xAI calls.
+  The bridge uses a module-level httpx.AsyncClient (main.client) for Mercury calls.
   Each pytest-asyncio test gets its own event loop. To avoid "Event loop is
-  closed" errors on sequential tests, the ``fresh_xai_client`` fixture replaces
+  closed" errors on sequential tests, the ``fresh_mercury_client`` fixture replaces
   main.client with a new AsyncClient before each test and restores it after.
 """
 
@@ -35,7 +35,7 @@ import httpx
 import pytest
 import pytest_asyncio
 
-# Load .env before any app imports so XAI_API_KEY is available
+# Load .env before any app imports so MERCURY_API_KEY is available
 from dotenv import load_dotenv
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
@@ -49,8 +49,8 @@ from main import app
 pytestmark = [pytest.mark.live]
 
 SKIP_NO_KEY = pytest.mark.skipif(
-    not os.getenv("XAI_API_KEY"),
-    reason="Requires XAI_API_KEY",
+    not os.getenv("MERCURY_API_KEY"),
+    reason="Requires MERCURY_API_KEY",
 )
 
 
@@ -60,7 +60,7 @@ SKIP_NO_KEY = pytest.mark.skipif(
 
 
 @pytest_asyncio.fixture(autouse=True)
-async def fresh_xai_client():
+async def fresh_mercury_client():
     """Replace main.client with a fresh AsyncClient for each test.
 
     The module-level main.client shares connection state across event loops.
@@ -69,7 +69,7 @@ async def fresh_xai_client():
     fresh client bound to the current loop, restoring the original after.
     """
     original = main.client
-    fresh = httpx.AsyncClient(base_url="https://api.x.ai/v1", timeout=120.0)
+    fresh = httpx.AsyncClient(base_url="https://api.inceptionlabs.ai/v1", timeout=120.0)
     main.client = fresh
     yield
     await fresh.aclose()
@@ -156,7 +156,7 @@ class TestLiveRequestResponse:
         assert isinstance(text_block["text"], str)
         assert len(text_block["text"]) > 0
 
-        # -- Model (flexible -- xAI may return a different model variant) --
+        # -- Model (flexible -- Mercury may return a different model variant) --
         assert isinstance(data["model"], str)
         assert len(data["model"]) > 0
 
@@ -215,7 +215,7 @@ class TestLiveToolCalling:
 
     @pytest.mark.asyncio
     async def test_tool_use_response_structure(self) -> None:
-        """Grok should return a tool_use block when asked to use a tool."""
+        """Mercury should return a tool_use block when asked to use a tool."""
         transport = httpx.ASGITransport(app=app)
         async with httpx.AsyncClient(
             transport=transport,
@@ -237,7 +237,7 @@ class TestLiveToolCalling:
         assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text}"
         data = resp.json()
 
-        # Grok should either call the tool or respond with text.
+        # Mercury should either call the tool or respond with text.
         # With a directive prompt, it should call the tool, but we handle both.
         tool_blocks = [b for b in data["content"] if b["type"] == "tool_use"]
 
@@ -250,21 +250,21 @@ class TestLiveToolCalling:
             assert "city" in tb["input"], f"Expected city in input, got {tb['input']}"
             assert data["stop_reason"] == "tool_use"
         else:
-            # If Grok didn't call the tool, just verify basic response structure
+            # If Mercury didn't call the tool, just verify basic response structure
             assert data["type"] == "message"
             assert any(b["type"] == "text" for b in data["content"])
-            pytest.skip("Grok did not call the tool -- non-deterministic behavior")
+            pytest.skip("Mercury did not call the tool -- non-deterministic behavior")
 
     @pytest.mark.asyncio
     async def test_multi_turn_tool_result(self) -> None:
-        """Send tool_result back and verify Grok uses it in final response."""
+        """Send tool_result back and verify Mercury uses it in final response."""
         transport = httpx.ASGITransport(app=app)
         async with httpx.AsyncClient(
             transport=transport,
             base_url="http://testserver",
             timeout=60.0,
         ) as client:
-            # Turn 1: Ask Grok to call the tool
+            # Turn 1: Ask Mercury to call the tool
             resp1 = await client.post(
                 "/v1/messages",
                 json=_minimal_request(
@@ -282,7 +282,7 @@ class TestLiveToolCalling:
 
             tool_blocks = [b for b in data1["content"] if b["type"] == "tool_use"]
             if not tool_blocks:
-                pytest.skip("Grok did not call tool in turn 1 -- non-deterministic")
+                pytest.skip("Mercury did not call tool in turn 1 -- non-deterministic")
 
             tool_use_id = tool_blocks[0]["id"]
 
@@ -322,14 +322,14 @@ class TestLiveToolCalling:
             assert resp2.status_code == 200, f"Turn 2 failed: {resp2.status_code}: {resp2.text}"
             data2 = resp2.json()
 
-            # Grok should now produce a text response using the tool result
+            # Mercury should now produce a text response using the tool result
             assert data2["type"] == "message"
             text_blocks = [b for b in data2["content"] if b["type"] == "text"]
             assert len(text_blocks) > 0, "Expected text response after tool_result"
 
             # The response should reference the weather data we provided
             response_text = text_blocks[0]["text"].lower()
-            # Flexible: Grok should mention the temperature or weather or Tokyo
+            # Flexible: Mercury should mention the temperature or weather or Tokyo
             assert any(
                 kw in response_text
                 for kw in ["72", "sunny", "tokyo", "weather", "temperature"]
@@ -337,7 +337,7 @@ class TestLiveToolCalling:
 
     @pytest.mark.asyncio
     async def test_enrichment_applied_to_outgoing_request(self) -> None:
-        """Verify that tool definitions are enriched before reaching xAI.
+        """Verify that tool definitions are enriched before reaching Mercury.
 
         Uses the request capture pattern: wraps main.client.post to intercept
         the outgoing request JSON, then checks enrichment fields.
@@ -347,7 +347,7 @@ class TestLiveToolCalling:
         original_post = main.client.post
 
         async def capture_and_forward(*args, **kwargs):
-            """Capture the request JSON, then forward to real xAI."""
+            """Capture the request JSON, then forward to real Mercury."""
             if "json" in kwargs:
                 captured_request.update(kwargs["json"])
             return await original_post(*args, **kwargs)

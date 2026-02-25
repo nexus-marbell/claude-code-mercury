@@ -1,10 +1,10 @@
-"""Tool definition translation between Anthropic and OpenAI formats.
+"""Tool definition translation between Anthropic and OpenAI/Mercury formats.
 
 Forward: Anthropic {name, description, input_schema} ->
          OpenAI {type: "function", function: {name, description, parameters}}
 
 Enrichment injection point: hook to modify tool definitions before translation.
-Measures enrichment overhead for token logging (Issue #26).
+Measures enrichment overhead for token logging.
 """
 
 from __future__ import annotations

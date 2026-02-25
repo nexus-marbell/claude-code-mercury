@@ -124,14 +124,14 @@ class TestDumpRequests:
             "DUMP_REQUESTS": "true",
             "DUMP_DIR": str(tmp_path),
         }):
-            data = {"model": "grok-4", "messages": []}
+            data = {"model": "mercury-2", "messages": []}
             path = dump_json("request", data)
             assert path is not None
             assert path.exists()
             assert path.name.startswith("request_")
             assert path.suffix == ".json"
             written = json.loads(path.read_text())
-            assert written["model"] == "grok-4"
+            assert written["model"] == "mercury-2"
 
     def test_dump_json_returns_none_when_disabled(self) -> None:
         with patch.dict(os.environ, {"DUMP_REQUESTS": "false"}):
@@ -145,7 +145,7 @@ class TestSanitizeRequest:
     def test_strips_authorization_header(self) -> None:
         payload = {
             "headers": {"Authorization": "Bearer sk-secret123", "Content-Type": "application/json"},
-            "model": "grok-4",
+            "model": "mercury-2",
         }
         sanitized = sanitize_request(payload)
         assert sanitized["headers"]["Authorization"] == "[REDACTED]"
@@ -157,17 +157,17 @@ class TestSanitizeRequest:
         assert sanitized["headers"]["X-Api-Key"] == "[REDACTED]"
 
     def test_strips_top_level_api_key(self) -> None:
-        payload = {"api_key": "sk-12345", "model": "grok-4"}
+        payload = {"api_key": "sk-12345", "model": "mercury-2"}
         sanitized = sanitize_request(payload)
         assert sanitized["api_key"] == "[REDACTED]"
-        assert sanitized["model"] == "grok-4"
+        assert sanitized["model"] == "mercury-2"
 
     def test_preserves_non_sensitive_fields(self) -> None:
-        payload = {"model": "grok-4", "messages": [{"role": "user", "content": "hi"}]}
+        payload = {"model": "mercury-2", "messages": [{"role": "user", "content": "hi"}]}
         sanitized = sanitize_request(payload)
         assert sanitized == payload
 
     def test_does_not_mutate_original(self) -> None:
-        payload = {"api_key": "secret", "model": "grok-4"}
+        payload = {"api_key": "secret", "model": "mercury-2"}
         sanitize_request(payload)
         assert payload["api_key"] == "secret"

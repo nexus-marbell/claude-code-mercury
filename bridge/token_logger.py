@@ -1,7 +1,7 @@
-"""Token count logging for the xAI bridge.
+"""Token count logging for the Mercury bridge.
 
 Tracks and logs token usage per request: input tokens, output tokens,
-total tokens, and enrichment overhead. Uses the xAI response usage
+total tokens, and enrichment overhead. Uses the Mercury response usage
 field for actual token counts and serialized JSON size delta for
 enrichment overhead estimation.
 
@@ -58,8 +58,8 @@ def log_token_usage(
     the token summary dict for callers that need it.
 
     Args:
-        input_tokens: Tokens consumed by the prompt (from xAI usage).
-        output_tokens: Tokens generated in the response (from xAI usage).
+        input_tokens: Tokens consumed by the prompt (from Mercury usage).
+        output_tokens: Tokens generated in the response (from Mercury usage).
         enrichment_overhead_tokens: Estimated tokens added by enrichment.
         elapsed_seconds: Total request time in seconds.
         is_streaming: Whether this was a streaming request.

@@ -143,7 +143,7 @@ def anthropic_full_text_stream() -> list[dict[str, Any]]:
 
 
 # ---------------------------------------------------------------------------
-# OpenAI SSE data lines (what xAI/Grok actually sends over the wire)
+# OpenAI SSE data lines (what Mercury actually sends over the wire)
 # ---------------------------------------------------------------------------
 
 
@@ -158,7 +158,7 @@ def openai_stream_chunks() -> list[str]:
             "id": "chatcmpl-stream001",
             "object": "chat.completion.chunk",
             "created": 1709000300,
-            "model": "grok-4-1-fast-reasoning",
+            "model": "mercury-2",
             "choices": [
                 {
                     "index": 0,
@@ -171,7 +171,7 @@ def openai_stream_chunks() -> list[str]:
             "id": "chatcmpl-stream001",
             "object": "chat.completion.chunk",
             "created": 1709000300,
-            "model": "grok-4-1-fast-reasoning",
+            "model": "mercury-2",
             "choices": [
                 {
                     "index": 0,
@@ -184,7 +184,7 @@ def openai_stream_chunks() -> list[str]:
             "id": "chatcmpl-stream001",
             "object": "chat.completion.chunk",
             "created": 1709000300,
-            "model": "grok-4-1-fast-reasoning",
+            "model": "mercury-2",
             "choices": [
                 {
                     "index": 0,
@@ -197,7 +197,7 @@ def openai_stream_chunks() -> list[str]:
             "id": "chatcmpl-stream001",
             "object": "chat.completion.chunk",
             "created": 1709000300,
-            "model": "grok-4-1-fast-reasoning",
+            "model": "mercury-2",
             "choices": [
                 {
                     "index": 0,
@@ -228,7 +228,7 @@ def openai_tool_call_stream_chunks() -> list[str]:
             "id": "chatcmpl-toolstream001",
             "object": "chat.completion.chunk",
             "created": 1709000400,
-            "model": "grok-4-1-fast-reasoning",
+            "model": "mercury-2",
             "choices": [
                 {
                     "index": 0,
@@ -255,7 +255,7 @@ def openai_tool_call_stream_chunks() -> list[str]:
             "id": "chatcmpl-toolstream001",
             "object": "chat.completion.chunk",
             "created": 1709000400,
-            "model": "grok-4-1-fast-reasoning",
+            "model": "mercury-2",
             "choices": [
                 {
                     "index": 0,
@@ -277,7 +277,7 @@ def openai_tool_call_stream_chunks() -> list[str]:
             "id": "chatcmpl-toolstream001",
             "object": "chat.completion.chunk",
             "created": 1709000400,
-            "model": "grok-4-1-fast-reasoning",
+            "model": "mercury-2",
             "choices": [
                 {
                     "index": 0,
@@ -299,7 +299,7 @@ def openai_tool_call_stream_chunks() -> list[str]:
             "id": "chatcmpl-toolstream001",
             "object": "chat.completion.chunk",
             "created": 1709000400,
-            "model": "grok-4-1-fast-reasoning",
+            "model": "mercury-2",
             "choices": [
                 {
                     "index": 0,

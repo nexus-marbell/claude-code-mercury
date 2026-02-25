@@ -20,7 +20,7 @@ class ManifestApplicator(PatternApplicator):
     """
 
     _DEFAULTS: dict[str, str] = {
-        "source": "claude-code-xai-bridge",
+        "source": "claude-code-mercury-bridge",
         "enrichment_version": "0.1.0",
     }
 

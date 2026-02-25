@@ -1,4 +1,4 @@
-"""Streaming SSE: OpenAI delta stream -> Anthropic event stream."""
+"""Streaming SSE: Mercury/OpenAI delta stream -> Anthropic event stream."""
 from __future__ import annotations
 import json, uuid
 from typing import Any, AsyncIterator
@@ -12,7 +12,7 @@ def _msg_start(chunk: dict[str, Any] | None = None) -> dict[str, Any]:
     return {"type": "message_start", "message": {
         "id": f"msg_{cid}" if not cid.startswith("msg_") else cid,
         "type": "message", "role": "assistant", "content": [],
-        "model": c.get("model", "grok-4-1-fast-reasoning"),
+        "model": c.get("model", "mercury-2"),
         "stop_reason": None, "stop_sequence": None,
         "usage": {"input_tokens": 0, "output_tokens": 1}}}
 

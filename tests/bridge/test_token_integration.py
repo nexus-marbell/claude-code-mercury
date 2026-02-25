@@ -22,7 +22,7 @@ def client():
     return TestClient(app)
 
 
-def _mock_xai_response(data: dict, status_code: int = 200):
+def _mock_mercury_response(data: dict, status_code: int = 200):
     """Create a mock httpx response."""
     mock_resp = MagicMock()
     mock_resp.status_code = status_code
@@ -70,7 +70,7 @@ class TestNonStreamingTokenLogging:
     def test_token_usage_logged_at_info(
         self, client: TestClient, caplog: pytest.LogCaptureFixture,
     ) -> None:
-        mock_post, _ = _mock_xai_response(_SIMPLE_RESPONSE)
+        mock_post, _ = _mock_mercury_response(_SIMPLE_RESPONSE)
         import main
         with patch.object(main.client, "post", side_effect=mock_post):
             with caplog.at_level(logging.INFO, logger="bridge.tokens"):
@@ -89,7 +89,7 @@ class TestNonStreamingTokenLogging:
     def test_enrichment_overhead_logged_with_tools(
         self, client: TestClient, caplog: pytest.LogCaptureFixture,
     ) -> None:
-        mock_post, _ = _mock_xai_response(_TOOL_CALL_RESPONSE)
+        mock_post, _ = _mock_mercury_response(_TOOL_CALL_RESPONSE)
         import main
         with patch.object(main.client, "post", side_effect=mock_post):
             with caplog.at_level(logging.INFO, logger="bridge.tokens"):
@@ -111,7 +111,7 @@ class TestNonStreamingTokenLogging:
     def test_no_enrichment_overhead_without_tools(
         self, client: TestClient, caplog: pytest.LogCaptureFixture,
     ) -> None:
-        mock_post, _ = _mock_xai_response(_SIMPLE_RESPONSE)
+        mock_post, _ = _mock_mercury_response(_SIMPLE_RESPONSE)
         import main
         with patch.object(main.client, "post", side_effect=mock_post):
             with caplog.at_level(logging.INFO, logger="bridge.tokens"):
@@ -128,7 +128,7 @@ class TestNonStreamingTokenLogging:
     def test_mode_is_sync_for_non_streaming(
         self, client: TestClient, caplog: pytest.LogCaptureFixture,
     ) -> None:
-        mock_post, _ = _mock_xai_response(_SIMPLE_RESPONSE)
+        mock_post, _ = _mock_mercury_response(_SIMPLE_RESPONSE)
         import main
         with patch.object(main.client, "post", side_effect=mock_post):
             with caplog.at_level(logging.INFO, logger="bridge.tokens"):

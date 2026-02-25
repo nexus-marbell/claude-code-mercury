@@ -1,9 +1,9 @@
-"""End-to-end tests for Issue #15 gap categories -- no XAI_API_KEY required.
+"""End-to-end tests for Issue #15 gap categories -- no MERCURY_API_KEY required.
 
 Covers gaps NOT already handled by test_e2e.py (345 existing tests):
 
 Category 1 -- Bridge Startup:
-  - App startup with empty/missing XAI_API_KEY (warns, does not crash)
+  - App startup with empty/missing MERCURY_API_KEY (warns, does not crash)
   - Manifest JSON structure deep validation
   - Health endpoint includes enrichment mode info
 
@@ -12,16 +12,16 @@ Category 5 -- Enrichment Modes (app-level integration):
   - ENRICHMENT_MODE=structural via live request: structural only, no behavioral
   - ENRICHMENT_MODE=full via live request: both structural and behavioral
   - PREAMBLE_ENABLED=false: no preamble in translated request
-  - IDENTITY_ENABLED=false: no Grok identity assertion, no Claude stripping
+  - IDENTITY_ENABLED=false: no Mercury identity assertion, no Claude stripping
 
 Category 6 -- Error Handling (mock-based):
-  - 401 Unauthorized from xAI -> Anthropic-format error with suggestion + _links
-  - 429 Rate Limit from xAI -> Anthropic-format error with retry suggestion
+  - 401 Unauthorized from Mercury -> Anthropic-format error with suggestion + _links
+  - 429 Rate Limit from Mercury -> Anthropic-format error with retry suggestion
   - Network timeout (httpx.TimeoutException) -> graceful 500 with suggestion
   - Unsupported content block type -> 400 with clear message
 
 Category 7 -- Quickstart Verification:
-  - App starts with sensible defaults (only XAI_API_KEY needed)
+  - App starts with sensible defaults (only MERCURY_API_KEY needed)
   - .env.example documents all config options
 """
 
@@ -53,7 +53,7 @@ def client() -> TestClient:
     return TestClient(app)
 
 
-def _mock_xai_response(data: dict, status_code: int = 200):
+def _mock_mercury_response(data: dict, status_code: int = 200):
     """Create a mock httpx response and async post function."""
     mock_resp = MagicMock()
     mock_resp.status_code = status_code
@@ -104,19 +104,19 @@ def _success_response() -> dict:
 
 
 class TestBridgeStartupNoKey:
-    """Verify bridge starts and serves correctly without XAI_API_KEY."""
+    """Verify bridge starts and serves correctly without MERCURY_API_KEY."""
 
-    def test_app_starts_without_xai_api_key(self) -> None:
-        """FastAPI app creates without errors when XAI_API_KEY is empty.
+    def test_app_starts_without_mercury_api_key(self) -> None:
+        """FastAPI app creates without errors when MERCURY_API_KEY is empty.
 
         The bridge should warn but not crash -- it only fails when a
-        request actually hits the xAI API.
+        request actually hits the Mercury API.
         """
-        # The app module is already imported and running -- if XAI_API_KEY
+        # The app module is already imported and running -- if MERCURY_API_KEY
         # were required at import time, this test file would fail to load.
         # Verify the app object exists and is functional.
         assert app is not None
-        assert app.title == "xai-agentic-claude-bridge"
+        assert app.title == "mercury-agentic-claude-bridge"
 
         # Verify we can create a TestClient (proves ASGI lifecycle works)
         test_client = TestClient(app)
@@ -130,7 +130,7 @@ class TestBridgeStartupNoKey:
         data = resp.json()
 
         # Top-level required fields
-        assert data["name"] == "Claude Code xAI Bridge"
+        assert data["name"] == "Claude Code Mercury Bridge"
         assert "version" in data
         assert "description" in data
         assert isinstance(data["capabilities"], list)
@@ -164,9 +164,9 @@ class TestBridgeStartupNoKey:
         assert data["enrichment_mode"] in ("passthrough", "structural", "full")
 
     def test_health_model_matches_env_or_default(self, client: TestClient) -> None:
-        """Health model reflects GROK_MODEL env var or the default."""
+        """Health model reflects MERCURY_MODEL env var or the default."""
         data = client.get("/health").json()
-        env_model = os.getenv("GROK_MODEL", "grok-4-1-fast-reasoning")
+        env_model = os.getenv("MERCURY_MODEL", "mercury-2")
         assert data["model"] == env_model
 
 
@@ -179,12 +179,12 @@ class TestEnrichmentModesAppLevel:
     """Test enrichment modes through the full app request path.
 
     Unlike test_e2e.py which tests create_enricher() directly, these tests
-    verify that ENRICHMENT_MODE affects the actual request sent to xAI
+    verify that ENRICHMENT_MODE affects the actual request sent to Mercury
     through the POST /v1/messages endpoint.
     """
 
     def _capture_request(self, client: TestClient, enrichment_mode: str) -> dict:
-        """Send a request through the bridge and capture what reaches xAI."""
+        """Send a request through the bridge and capture what reaches Mercury."""
         captured = {}
 
         async def capture_post(*args, **kwargs):
@@ -215,7 +215,7 @@ class TestEnrichmentModesAppLevel:
         return captured
 
     def test_passthrough_tools_unchanged(self, client: TestClient) -> None:
-        """In passthrough mode, tools sent to xAI have no enrichment fields."""
+        """In passthrough mode, tools sent to Mercury have no enrichment fields."""
         captured = self._capture_request(client, "passthrough")
         tools = captured.get("tools", [])
         assert len(tools) == 1
@@ -266,7 +266,7 @@ class TestPreambleAndIdentityAppLevel:
     """Test PREAMBLE_ENABLED and IDENTITY_ENABLED through the request path."""
 
     def _capture_system_message(self, client: TestClient, env_overrides: dict) -> str:
-        """Send a request and capture the system message sent to xAI."""
+        """Send a request and capture the system message sent to Mercury."""
         captured = {}
 
         async def capture_post(*args, **kwargs):
@@ -319,13 +319,13 @@ class TestPreambleAndIdentityAppLevel:
         })
         assert "Tool Preference Hierarchy" in system_text
 
-    def test_identity_disabled_no_grok_assertion(self, client: TestClient) -> None:
-        """IDENTITY_ENABLED=false: no Grok identity preamble in system prompt."""
+    def test_identity_disabled_no_mercury_assertion(self, client: TestClient) -> None:
+        """IDENTITY_ENABLED=false: no Mercury identity preamble in system prompt."""
         system_text = self._capture_system_message(client, {
             "PREAMBLE_ENABLED": "true",
             "IDENTITY_ENABLED": "false",
         })
-        assert "You are Grok" not in system_text
+        assert "You are Mercury" not in system_text
 
     def test_identity_disabled_preserves_claude_references(self, client: TestClient) -> None:
         """IDENTITY_ENABLED=false: Claude identity patterns are NOT stripped."""
@@ -373,7 +373,7 @@ class TestPreambleAndIdentityAppLevel:
             "IDENTITY_ENABLED": "false",
         })
         # Should only have the user's original system text, no additions
-        assert "You are Grok" not in system_text
+        assert "You are Mercury" not in system_text
         assert "Tool Preference Hierarchy" not in system_text
         # The original "You are helpful." should still be present
         assert "helpful" in system_text.lower()
@@ -388,8 +388,8 @@ class TestErrorHandlingAppLevel:
     """Test error responses follow Anthropic format with Agentic Standard compliance."""
 
     def test_401_unauthorized_returns_anthropic_error(self, client: TestClient) -> None:
-        """Mock xAI 401 -> Anthropic error format with suggestion and _links."""
-        mock_post, _ = _mock_xai_response(
+        """Mock Mercury 401 -> Anthropic error format with suggestion and _links."""
+        mock_post, _ = _mock_mercury_response(
             {"error": {"type": "auth_error", "message": "Invalid API key"}},
             status_code=401,
         )
@@ -421,8 +421,8 @@ class TestErrorHandlingAppLevel:
         assert "manifest" in data["_links"]
 
     def test_429_rate_limit_returns_retry_suggestion(self, client: TestClient) -> None:
-        """Mock xAI 429 -> Anthropic rate_limit_error with retry suggestion."""
-        mock_post, _ = _mock_xai_response(
+        """Mock Mercury 429 -> Anthropic rate_limit_error with retry suggestion."""
+        mock_post, _ = _mock_mercury_response(
             {"error": {"type": "rate_limit_error", "message": "Rate limit exceeded"}},
             status_code=429,
         )
@@ -479,7 +479,7 @@ class TestErrorHandlingAppLevel:
         """httpx ConnectError -> 500 with helpful error message."""
 
         async def connect_error(*args, **kwargs):
-            raise httpx.ConnectError("Failed to connect to api.x.ai")
+            raise httpx.ConnectError("Failed to connect to api.inceptionlabs.ai")
 
         with patch.object(main.client, "post", side_effect=connect_error):
             resp = client.post("/v1/messages", json={
@@ -528,9 +528,9 @@ class TestErrorHandlingAppLevel:
         assert "video" in data["error"]["message"].lower() or \
                "unsupported" in data["error"]["message"].lower()
 
-    def test_500_from_xai_returns_api_error(self, client: TestClient) -> None:
-        """Mock xAI 500 -> Anthropic api_error with suggestion."""
-        mock_post, _ = _mock_xai_response(
+    def test_500_from_mercury_returns_api_error(self, client: TestClient) -> None:
+        """Mock Mercury 500 -> Anthropic api_error with suggestion."""
+        mock_post, _ = _mock_mercury_response(
             {"error": {"type": "server_error", "message": "Internal server error"}},
             status_code=500,
         )
@@ -550,8 +550,8 @@ class TestErrorHandlingAppLevel:
         assert "_links" in data
 
     def test_403_forbidden_returns_auth_error(self, client: TestClient) -> None:
-        """Mock xAI 403 -> Anthropic error with permission suggestion."""
-        mock_post, _ = _mock_xai_response(
+        """Mock Mercury 403 -> Anthropic error with permission suggestion."""
+        mock_post, _ = _mock_mercury_response(
             {"error": {"type": "forbidden", "message": "Forbidden"}},
             status_code=403,
         )
@@ -579,7 +579,7 @@ class TestErrorHandlingAppLevel:
         ]
 
         for status_code, error_body in error_scenarios:
-            mock_post, _ = _mock_xai_response(error_body, status_code=status_code)
+            mock_post, _ = _mock_mercury_response(error_body, status_code=status_code)
 
             with patch.object(main.client, "post", side_effect=mock_post):
                 resp = client.post("/v1/messages", json={
@@ -603,7 +603,7 @@ class TestErrorHandlingAppLevel:
 
 
 class TestQuickstartDefaults:
-    """Verify sensible defaults -- app starts with just XAI_API_KEY."""
+    """Verify sensible defaults -- app starts with just MERCURY_API_KEY."""
 
     def test_app_starts_with_default_enrichment_mode(self) -> None:
         """Default ENRICHMENT_MODE is 'full' when not set."""
@@ -611,12 +611,12 @@ class TestQuickstartDefaults:
         enricher = create_enricher()
         assert enricher.config.mode == os.getenv("ENRICHMENT_MODE", "full")
 
-    def test_default_grok_model_is_set(self) -> None:
-        """Default model name is reasonable when GROK_MODEL not set."""
+    def test_default_mercury_model_is_set(self) -> None:
+        """Default model name is reasonable when MERCURY_MODEL not set."""
         from translation.config import TranslationConfig
         config = TranslationConfig()
         assert len(config.default_model) > 0
-        assert "grok" in config.default_model
+        assert "mercury" in config.default_model
 
     def test_default_temperature_is_reasonable(self) -> None:
         """Default temperature is between 0 and 2."""
@@ -636,16 +636,16 @@ class TestQuickstartDefaults:
         assert env_example.exists(), ".env.example should exist for quickstart docs"
 
     def test_env_example_documents_required_vars(self) -> None:
-        """The .env.example includes the required XAI_API_KEY variable."""
+        """The .env.example includes the required MERCURY_API_KEY variable."""
         env_example = REPO_ROOT / ".env.example"
         content = env_example.read_text()
-        assert "XAI_API_KEY" in content
+        assert "MERCURY_API_KEY" in content
 
     def test_env_example_documents_optional_vars(self) -> None:
         """The .env.example includes optional configuration variables."""
         env_example = REPO_ROOT / ".env.example"
         content = env_example.read_text()
-        expected_vars = ["GROK_MODEL", "ENRICHMENT_MODE", "PREAMBLE_ENABLED"]
+        expected_vars = ["MERCURY_MODEL", "ENRICHMENT_MODE", "PREAMBLE_ENABLED"]
         for var in expected_vars:
             assert var in content, f"{var} should be documented in .env.example"
 
@@ -656,8 +656,8 @@ class TestQuickstartDefaults:
 
         # These are all the env vars the app reads from main.py and config files
         known_vars = [
-            "XAI_API_KEY",
-            "GROK_MODEL",
+            "MERCURY_API_KEY",
+            "MERCURY_MODEL",
             "ENRICHMENT_MODE",
             "PREAMBLE_ENABLED",
             "HOST",
@@ -676,4 +676,4 @@ class TestQuickstartDefaults:
         """Manifest works even without a valid API key."""
         resp = client.get("/manifest")
         assert resp.status_code == 200
-        assert resp.json()["name"] == "Claude Code xAI Bridge"
+        assert resp.json()["name"] == "Claude Code Mercury Bridge"

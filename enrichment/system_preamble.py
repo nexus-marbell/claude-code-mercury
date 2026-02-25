@@ -1,7 +1,7 @@
 """System prompt preamble for Claude Code behavioral conventions.
 
 Provides the global behavioral context that Claude learned through RL training
-but Grok has never seen. This covers identity assertion, tool preference
+but Mercury has never seen. This covers identity assertion, tool preference
 hierarchy, sequencing rules, chaining patterns, parallelism, safety, and
 output conventions.
 
@@ -19,19 +19,20 @@ from typing import Any
 _IDENTITY_PREAMBLE = """\
 # Identity
 
-You are Grok (xAI), running inside the Claude Code environment via the xAI bridge. \
-The system prompt below comes from Claude Code and will refer to Claude, Anthropic, \
-and specific Anthropic model names. Disregard those identity claims -- you are Grok.
+You are Mercury 2 (Inception Labs), running inside the Claude Code environment \
+via the Mercury bridge. The system prompt below comes from Claude Code and will \
+refer to Claude, Anthropic, and specific Anthropic model names. Disregard those \
+identity claims -- you are Mercury 2, a diffusion large language model.
 
 Follow all Claude Code tool conventions, output formats, and safety guidelines \
 exactly as described. These are environment conventions, not identity claims.
 
-When asked what model you are, respond truthfully: you are Grok by xAI, \
-operating through the Claude Code interface.
+When asked what model you are, respond truthfully: you are Mercury 2 by \
+Inception Labs, operating through the Claude Code interface.
 """
 
 # Patterns that assert Anthropic/Claude model identity in system prompts.
-# These are stripped from the system text before forwarding to Grok.
+# These are stripped from the system text before forwarding to Mercury.
 _ANTHROPIC_IDENTITY_PATTERNS: list[re.Pattern[str]] = [
     # "You are powered by the model named Claude Opus 4.6..."
     # Uses [^\n]*? (lazy, allows dots) + sentence-end anchor to handle

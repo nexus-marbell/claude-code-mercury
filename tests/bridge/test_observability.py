@@ -24,7 +24,7 @@ def client():
     return TestClient(app)
 
 
-def _mock_xai_response(data: dict, status_code: int = 200):
+def _mock_mercury_response(data: dict, status_code: int = 200):
     """Create a mock httpx response."""
     mock_resp = MagicMock()
     mock_resp.status_code = status_code
@@ -36,7 +36,7 @@ def _mock_xai_response(data: dict, status_code: int = 200):
     return mock_post, mock_resp
 
 
-_SIMPLE_XAI_RESPONSE = {
+_SIMPLE_MERCURY_RESPONSE = {
     "id": "chatcmpl-log1",
     "object": "chat.completion",
     "choices": [{
@@ -54,7 +54,7 @@ class TestPoint2RequestLogging:
     def test_info_logs_request_summary(
         self, client: TestClient, caplog: pytest.LogCaptureFixture,
     ) -> None:
-        mock_post, _ = _mock_xai_response(_SIMPLE_XAI_RESPONSE)
+        mock_post, _ = _mock_mercury_response(_SIMPLE_MERCURY_RESPONSE)
         import main
         with patch.object(main.client, "post", side_effect=mock_post):
             with caplog.at_level(logging.INFO, logger="bridge.main"):
@@ -70,7 +70,7 @@ class TestPoint2RequestLogging:
     def test_debug_logs_translated_payload(
         self, client: TestClient, caplog: pytest.LogCaptureFixture,
     ) -> None:
-        mock_post, _ = _mock_xai_response(_SIMPLE_XAI_RESPONSE)
+        mock_post, _ = _mock_mercury_response(_SIMPLE_MERCURY_RESPONSE)
         import main
         with patch.object(main.client, "post", side_effect=mock_post):
             with caplog.at_level(logging.DEBUG, logger="bridge.main"):
@@ -85,7 +85,7 @@ class TestPoint2RequestLogging:
     def test_request_log_includes_tool_count(
         self, client: TestClient, caplog: pytest.LogCaptureFixture,
     ) -> None:
-        mock_post, _ = _mock_xai_response(_SIMPLE_XAI_RESPONSE)
+        mock_post, _ = _mock_mercury_response(_SIMPLE_MERCURY_RESPONSE)
         import main
         with patch.object(main.client, "post", side_effect=mock_post):
             with caplog.at_level(logging.INFO, logger="bridge.main"):
@@ -102,12 +102,12 @@ class TestPoint2RequestLogging:
 
 
 class TestPoint3ResponseLogging:
-    """Point 3: Grok response summary at INFO level."""
+    """Point 3: Mercury response summary at INFO level."""
 
     def test_info_logs_response_summary(
         self, client: TestClient, caplog: pytest.LogCaptureFixture,
     ) -> None:
-        mock_post, _ = _mock_xai_response(_SIMPLE_XAI_RESPONSE)
+        mock_post, _ = _mock_mercury_response(_SIMPLE_MERCURY_RESPONSE)
         import main
         with patch.object(main.client, "post", side_effect=mock_post):
             with caplog.at_level(logging.INFO, logger="bridge.main"):
@@ -116,7 +116,7 @@ class TestPoint3ResponseLogging:
                     "max_tokens": 1024,
                     "messages": [{"role": "user", "content": "Hello"}],
                 })
-        resp_logs = [r.message for r in caplog.records if "xAI response" in r.message]
+        resp_logs = [r.message for r in caplog.records if "Mercury response" in r.message]
         assert len(resp_logs) >= 1
         msg = resp_logs[0]
         assert "status=200" in msg
@@ -143,7 +143,7 @@ class TestPoint3ResponseLogging:
             }],
             "usage": {"prompt_tokens": 20, "completion_tokens": 10, "total_tokens": 30},
         }
-        mock_post, _ = _mock_xai_response(tool_response)
+        mock_post, _ = _mock_mercury_response(tool_response)
         import main
         with patch.object(main.client, "post", side_effect=mock_post):
             with caplog.at_level(logging.INFO, logger="bridge.main"):
@@ -152,13 +152,13 @@ class TestPoint3ResponseLogging:
                     "max_tokens": 1024,
                     "messages": [{"role": "user", "content": "Read file"}],
                 })
-        resp_logs = [r.message for r in caplog.records if "xAI response" in r.message]
+        resp_logs = [r.message for r in caplog.records if "Mercury response" in r.message]
         assert any("tool_calls=1" in m for m in resp_logs)
 
     def test_debug_logs_full_response_body(
         self, client: TestClient, caplog: pytest.LogCaptureFixture,
     ) -> None:
-        mock_post, _ = _mock_xai_response(_SIMPLE_XAI_RESPONSE)
+        mock_post, _ = _mock_mercury_response(_SIMPLE_MERCURY_RESPONSE)
         import main
         with patch.object(main.client, "post", side_effect=mock_post):
             with caplog.at_level(logging.DEBUG, logger="bridge.main"):
@@ -168,7 +168,7 @@ class TestPoint3ResponseLogging:
                     "messages": [{"role": "user", "content": "Hello"}],
                 })
         debug_msgs = [r.message for r in caplog.records if r.levelno == logging.DEBUG]
-        assert any("xAI response body" in m for m in debug_msgs)
+        assert any("Mercury response body" in m for m in debug_msgs)
 
 
 class TestPoint1EnrichmentLogging:
@@ -234,7 +234,7 @@ class TestNoApiKeyLeaks:
     def test_translated_request_has_no_bearer_token(
         self, client: TestClient, caplog: pytest.LogCaptureFixture,
     ) -> None:
-        mock_post, _ = _mock_xai_response(_SIMPLE_XAI_RESPONSE)
+        mock_post, _ = _mock_mercury_response(_SIMPLE_MERCURY_RESPONSE)
         import main
         with patch.object(main.client, "post", side_effect=mock_post):
             with caplog.at_level(logging.DEBUG, logger="bridge.main"):
@@ -245,4 +245,4 @@ class TestNoApiKeyLeaks:
                 })
         all_output = " ".join(r.message for r in caplog.records)
         assert "Bearer" not in all_output
-        assert "XAI_API_KEY" not in all_output
+        assert "MERCURY_API_KEY" not in all_output

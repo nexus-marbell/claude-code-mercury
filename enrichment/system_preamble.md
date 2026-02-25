@@ -1,12 +1,12 @@
 # System Prompt Preamble
 
-Identity assertion and behavioral conventions injected into the system prompt for every request through the xAI bridge. This is the GLOBAL context that (1) establishes Grok's identity and (2) teaches Grok how to operate as a Claude Code agent.
+Identity assertion and behavioral conventions injected into the system prompt for every request through the Mercury bridge. This is the GLOBAL context that (1) establishes Mercury 2's identity and (2) teaches Mercury how to operate as a Claude Code agent.
 
 ## Purpose
 
-Claude Code sends system prompts that claim the model is "Claude Opus" or "powered by Anthropic." When Grok receives these claims, it role-plays as Claude instead of being itself. The identity preamble overrides these claims, and `strip_anthropic_identity()` removes them from the system text.
+Claude Code sends system prompts that claim the model is "Claude Opus" or "powered by Anthropic." When Mercury receives these claims, it may role-play as Claude instead of being itself. The identity preamble overrides these claims, and `strip_anthropic_identity()` removes them from the system text.
 
-Claude Code agents also learn tool usage patterns, sequencing rules, and safety conventions through Anthropic's RL training. Grok has no equivalent training. The behavioral preamble transfers that knowledge at the system prompt level.
+Claude Code agents also learn tool usage patterns, sequencing rules, and safety conventions through Anthropic's RL training. Mercury has no equivalent training (it uses diffusion-based generation). The behavioral preamble transfers that knowledge at the system prompt level.
 
 ## Architecture
 
@@ -17,7 +17,7 @@ Request Flow:
       -> strip_anthropic_identity() removes Claude identity claims
       -> system_preamble prepended (identity + behavioral)
       -> tools enriched via tool_enrichment_hook
-    -> xAI Chat Completions API (Grok)
+    -> Mercury Chat Completions API (Inception Labs)
 ```
 
 The preamble is injected in `translation/forward.py` via `TranslationConfig.system_prompt_preamble`. Identity stripping happens in `forward.py`'s `anthropic_to_openai()` via `strip_anthropic_identity()`. Both respect their respective environment variables.
@@ -26,7 +26,7 @@ The preamble is injected in `translation/forward.py` via `TranslationConfig.syst
 
 The identity preamble is prepended BEFORE behavioral conventions and BEFORE the user's system prompt. It establishes:
 
-1. "You are Grok (xAI)" -- truthful identity assertion
+1. "You are Mercury 2 (Inception Labs)" -- truthful identity assertion
 2. "Disregard Claude/Anthropic identity claims" -- override stale context
 3. "Follow tool conventions as environment rules" -- behavioral compliance without identity confusion
 4. "Respond truthfully about your model" -- when asked directly
@@ -45,9 +45,9 @@ This is a surgical regex-based approach targeting known patterns, not a broad co
 
 ## Seven Preamble Areas
 
-### 0. Identity (NEW)
+### 0. Identity
 
-Grok identity assertion, Claude identity override, environment convention framing.
+Mercury 2 identity assertion, Claude identity override, environment convention framing.
 
 ### 1. Tool Preference Hierarchy
 

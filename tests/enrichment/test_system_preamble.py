@@ -24,10 +24,10 @@ from enrichment.system_preamble import (
 class TestIdentityPreambleContent:
     """Tests for identity preamble content."""
 
-    def test_identity_declares_grok(self) -> None:
-        """Identity preamble asserts Grok identity."""
-        assert "You are Grok" in _IDENTITY_PREAMBLE
-        assert "xAI" in _IDENTITY_PREAMBLE
+    def test_identity_declares_mercury(self) -> None:
+        """Identity preamble asserts Mercury identity."""
+        assert "You are Mercury" in _IDENTITY_PREAMBLE
+        assert "Mercury" in _IDENTITY_PREAMBLE
 
     def test_identity_disclaims_claude(self) -> None:
         """Identity preamble tells model to disregard Claude claims."""
@@ -41,7 +41,7 @@ class TestIdentityPreambleContent:
     def test_identity_truthful_response(self) -> None:
         """Identity preamble directs truthful model identification."""
         assert "respond truthfully" in _IDENTITY_PREAMBLE
-        assert "Grok by xAI" in _IDENTITY_PREAMBLE
+        assert "Mercury 2 by Inception Labs" in _IDENTITY_PREAMBLE
 
 
 class TestGetSystemPreamble:
@@ -70,7 +70,7 @@ class TestGetSystemPreamble:
         with patch.dict(os.environ, {"PREAMBLE_ENABLED": "false"}, clear=False):
             os.environ.pop("IDENTITY_ENABLED", None)
             result = get_system_preamble()
-        assert "You are Grok" in result
+        assert "You are Mercury" in result
         assert "Tool Preference Hierarchy" not in result
 
     def test_identity_disabled_returns_behavioral_only(self) -> None:
@@ -79,7 +79,7 @@ class TestGetSystemPreamble:
             os.environ.pop("PREAMBLE_ENABLED", None)
             result = get_system_preamble()
         assert result == _PREAMBLE
-        assert "You are Grok" not in result
+        assert "You are Mercury" not in result
 
     def test_both_disabled_returns_empty(self) -> None:
         """Empty string when both PREAMBLE_ENABLED and IDENTITY_ENABLED are false."""
@@ -97,7 +97,7 @@ class TestGetSystemPreamble:
             "IDENTITY_ENABLED": "true",
         }):
             result = get_system_preamble()
-        assert "You are Grok" in result
+        assert "You are Mercury" in result
         assert "Tool Preference Hierarchy" in result
 
     def test_case_insensitive_false(self) -> None:
@@ -514,7 +514,7 @@ class TestIntegrationWithConfig:
         from translation.config import TranslationConfig
 
         config = TranslationConfig()
-        assert "You are Grok" in config.system_prompt_preamble
+        assert "You are Mercury" in config.system_prompt_preamble
 
     def test_config_empty_when_both_disabled(self) -> None:
         """Config preamble is empty when both are disabled."""
@@ -542,7 +542,7 @@ class TestIntegrationWithConfig:
         result = anthropic_to_openai(request)
         system_msg = result["messages"][0]
         assert system_msg["role"] == "system"
-        assert "You are Grok" in system_msg["content"]
+        assert "You are Mercury" in system_msg["content"]
         assert "Tool Preference Hierarchy" in system_msg["content"]
         assert "You are a coding assistant." in system_msg["content"]
 
@@ -567,4 +567,4 @@ class TestIntegrationWithConfig:
         assert "powered by the model named" not in system_msg["content"]
         assert "claude-opus-4-6" not in system_msg["content"]
         assert "You are a coding assistant." in system_msg["content"]
-        assert "You are Grok" in system_msg["content"]
+        assert "You are Mercury" in system_msg["content"]

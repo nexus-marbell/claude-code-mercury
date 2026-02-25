@@ -1,14 +1,14 @@
 """Tests for thinking feature handling in the translation layer.
 
 Anthropic's 'thinking' parameter (extended thinking / chain-of-thought)
-is not supported by xAI's Chat Completions API. The bridge must:
+is not supported by Mercury's Chat Completions API. The bridge must:
 1. Strip the thinking parameter from requests (not reject them)
 2. Strip thinking/redacted_thinking content blocks from messages
 3. Forward the request normally to get a valid response
 4. Signal degradation via warnings (Agentic API Standard Pattern 3)
 
-Grok models reason internally -- stripping thinking does NOT reduce
-response quality; it simply removes a parameter xAI does not accept.
+Mercury models reason internally -- stripping thinking does NOT reduce
+response quality; it simply removes a parameter Mercury does not accept.
 """
 
 from __future__ import annotations
@@ -307,8 +307,8 @@ class TestThinkingEndToEnd:
 class TestWarningFormat:
     """Warning messages follow Agentic API Standard Pattern 3."""
 
-    def test_warning_mentions_grok_reasoning(self) -> None:
-        """Warning explains that Grok reasons internally."""
+    def test_warning_mentions_mercury_reasoning(self) -> None:
+        """Warning explains that Mercury reasons internally."""
         request: dict[str, Any] = {
             "model": "claude-sonnet-4-20250514",
             "max_tokens": 1024,
@@ -319,7 +319,7 @@ class TestWarningFormat:
 
         assert len(warnings) >= 1
         warning_text = " ".join(warnings).lower()
-        assert "grok" in warning_text
+        assert "mercury" in warning_text
         assert "reason" in warning_text or "stripped" in warning_text
 
     def test_warning_is_not_an_error(self) -> None:
