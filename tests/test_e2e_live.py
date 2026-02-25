@@ -69,7 +69,7 @@ async def fresh_mercury_client():
     fresh client bound to the current loop, restoring the original after.
     """
     original = main.client
-    fresh = httpx.AsyncClient(base_url="https://api.inceptionlabs.ai/v1", timeout=120.0)
+    fresh = httpx.AsyncClient(base_url=main.INCEPTION_BASE_URL, timeout=120.0)
     main.client = fresh
     yield
     await fresh.aclose()

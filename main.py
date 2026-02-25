@@ -30,7 +30,8 @@ INCEPTION_API_KEY = os.getenv("INCEPTION_API_KEY", "")
 if not INCEPTION_API_KEY:
     logger.warning("INCEPTION_API_KEY not set. Requests to Mercury will fail.")
 
-client = httpx.AsyncClient(base_url="https://api.inceptionlabs.ai/v1", timeout=120.0)
+INCEPTION_BASE_URL = os.getenv("INCEPTION_BASE_URL", "https://api.inceptionlabs.ai/v1")
+client = httpx.AsyncClient(base_url=INCEPTION_BASE_URL, timeout=120.0)
 
 enricher = create_enricher()
 set_tool_enrichment_hook(enricher.enrich)
@@ -108,6 +109,13 @@ async def messages(request: Request):
             usage.get("total_tokens", 0),
         )
 
+        if resp.status_code != 200:
+            logger.warning(
+                "Mercury API error %d: %s",
+                resp.status_code,
+                json.dumps(data, default=str)[:500],
+            )
+
         # -- Token usage logging (Issue #26) --
         log_token_usage(
             input_tokens=usage.get("prompt_tokens", 0),
@@ -157,6 +165,14 @@ async def _stream(
         nonlocal event_count
         async with client.stream("POST", "/chat/completions", json=openai_body, headers=headers) as resp:
             logger.info("Streaming started status=%d", resp.status_code)
+
+            if resp.status_code != 200:
+                error_body = await resp.aread()
+                logger.warning(
+                    "Mercury API streaming error %d: %s",
+                    resp.status_code,
+                    error_body.decode("utf-8", errors="replace")[:500],
+                )
 
             async def lines():
                 async for line in resp.aiter_lines():

@@ -140,6 +140,7 @@ INCEPTION_API_KEY=sk-... pytest   # Include live API tests
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `INCEPTION_API_KEY` | -- | Your Inception Labs API key (required) |
+| `INCEPTION_BASE_URL` | `https://api.inceptionlabs.ai/v1` | Mercury API base URL |
 | `MERCURY_MODEL` | `mercury-2` | Mercury model to use |
 | `MERCURY_REASONING_EFFORT` | `high` | Reasoning depth: `instant` / `low` / `medium` / `high` |
 | `ENRICHMENT_MODE` | `full` | `passthrough` / `structural` / `full` |
