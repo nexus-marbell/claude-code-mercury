@@ -8,5 +8,5 @@ requires-python = ">=3.11"
 pythonpath = ["."]
 testpaths = ["tests"]
 markers = [
-    "live: tests that require a live MERCURY_API_KEY and hit the real Mercury API",
+    "live: tests that require a live INCEPTION_API_KEY and hit the real Mercury API",
 ]

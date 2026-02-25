@@ -53,7 +53,7 @@ _ERROR_SUGGESTIONS: dict[int, str] = {
     429: "Rate limited by Mercury API. Wait and retry, or reduce request frequency.",
     500: "Mercury API internal error. Retry the request. If persistent, simplify tool schemas.",
     400: "Invalid request format. Check message structure and tool definitions.",
-    401: "Authentication failed. Verify MERCURY_API_KEY is set correctly.",
+    401: "Authentication failed. Verify INCEPTION_API_KEY is set correctly.",
     403: "Access denied. Check API key permissions for the requested model.",
 }
 

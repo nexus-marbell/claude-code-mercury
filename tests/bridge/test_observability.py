@@ -245,4 +245,4 @@ class TestNoApiKeyLeaks:
                 })
         all_output = " ".join(r.message for r in caplog.records)
         assert "Bearer" not in all_output
-        assert "MERCURY_API_KEY" not in all_output
+        assert "INCEPTION_API_KEY" not in all_output

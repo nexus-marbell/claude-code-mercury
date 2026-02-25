@@ -1,9 +1,9 @@
-"""End-to-end tests for Issue #15 gap categories -- no MERCURY_API_KEY required.
+"""End-to-end tests for Issue #15 gap categories -- no INCEPTION_API_KEY required.
 
 Covers gaps NOT already handled by test_e2e.py (345 existing tests):
 
 Category 1 -- Bridge Startup:
-  - App startup with empty/missing MERCURY_API_KEY (warns, does not crash)
+  - App startup with empty/missing INCEPTION_API_KEY (warns, does not crash)
   - Manifest JSON structure deep validation
   - Health endpoint includes enrichment mode info
 
@@ -21,7 +21,7 @@ Category 6 -- Error Handling (mock-based):
   - Unsupported content block type -> 400 with clear message
 
 Category 7 -- Quickstart Verification:
-  - App starts with sensible defaults (only MERCURY_API_KEY needed)
+  - App starts with sensible defaults (only INCEPTION_API_KEY needed)
   - .env.example documents all config options
 """
 
@@ -104,15 +104,15 @@ def _success_response() -> dict:
 
 
 class TestBridgeStartupNoKey:
-    """Verify bridge starts and serves correctly without MERCURY_API_KEY."""
+    """Verify bridge starts and serves correctly without INCEPTION_API_KEY."""
 
     def test_app_starts_without_mercury_api_key(self) -> None:
-        """FastAPI app creates without errors when MERCURY_API_KEY is empty.
+        """FastAPI app creates without errors when INCEPTION_API_KEY is empty.
 
         The bridge should warn but not crash -- it only fails when a
         request actually hits the Mercury API.
         """
-        # The app module is already imported and running -- if MERCURY_API_KEY
+        # The app module is already imported and running -- if INCEPTION_API_KEY
         # were required at import time, this test file would fail to load.
         # Verify the app object exists and is functional.
         assert app is not None
@@ -603,7 +603,7 @@ class TestErrorHandlingAppLevel:
 
 
 class TestQuickstartDefaults:
-    """Verify sensible defaults -- app starts with just MERCURY_API_KEY."""
+    """Verify sensible defaults -- app starts with just INCEPTION_API_KEY."""
 
     def test_app_starts_with_default_enrichment_mode(self) -> None:
         """Default ENRICHMENT_MODE is 'full' when not set."""
@@ -636,10 +636,10 @@ class TestQuickstartDefaults:
         assert env_example.exists(), ".env.example should exist for quickstart docs"
 
     def test_env_example_documents_required_vars(self) -> None:
-        """The .env.example includes the required MERCURY_API_KEY variable."""
+        """The .env.example includes the required INCEPTION_API_KEY variable."""
         env_example = REPO_ROOT / ".env.example"
         content = env_example.read_text()
-        assert "MERCURY_API_KEY" in content
+        assert "INCEPTION_API_KEY" in content
 
     def test_env_example_documents_optional_vars(self) -> None:
         """The .env.example includes optional configuration variables."""
@@ -656,7 +656,7 @@ class TestQuickstartDefaults:
 
         # These are all the env vars the app reads from main.py and config files
         known_vars = [
-            "MERCURY_API_KEY",
+            "INCEPTION_API_KEY",
             "MERCURY_MODEL",
             "ENRICHMENT_MODE",
             "PREAMBLE_ENABLED",

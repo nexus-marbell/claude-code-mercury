@@ -7,12 +7,12 @@ Sends a known request with tool definitions through the bridge and verifies:
   3. Request/response translation works end-to-end
 
 Modes:
-  - Mock mode (default, no MERCURY_API_KEY): Uses mocked Mercury responses for CI
-  - Live mode (MERCURY_API_KEY set): Sends real requests to Mercury API
+  - Mock mode (default, no INCEPTION_API_KEY): Uses mocked Mercury responses for CI
+  - Live mode (INCEPTION_API_KEY set): Sends real requests to Mercury API
 
 Usage:
     python tests/smoke.py              # mock mode
-    MERCURY_API_KEY=sk-... python tests/smoke.py  # live mode
+    INCEPTION_API_KEY=sk-... python tests/smoke.py  # live mode
 """
 
 from __future__ import annotations
@@ -333,12 +333,12 @@ def check_thinking_stripped(client: TestClient, r: Results) -> None:
 # ── Main ───────────────────────────────────────────────────────────────
 def main() -> int:
     r = Results()
-    api_key = os.getenv("MERCURY_API_KEY", "")
+    api_key = os.getenv("INCEPTION_API_KEY", "")
     live = bool(api_key)
 
     print(f"{'=' * 60}")
     print(f"  Claude Code Mercury Bridge — Smoke Test")
-    print(f"  Mode: {'LIVE (MERCURY_API_KEY set)' if live else 'MOCK (no MERCURY_API_KEY)'}")
+    print(f"  Mode: {'LIVE (INCEPTION_API_KEY set)' if live else 'MOCK (no INCEPTION_API_KEY)'}")
     print(f"{'=' * 60}\n")
 
     from main import app
@@ -380,8 +380,8 @@ def main() -> int:
             traceback.print_exc()
     else:
         print("\n[Live Mercury API]")
-        r.skip("live.simple", "no MERCURY_API_KEY")
-        r.skip("live.with_tools", "no MERCURY_API_KEY")
+        r.skip("live.simple", "no INCEPTION_API_KEY")
+        r.skip("live.with_tools", "no INCEPTION_API_KEY")
 
     return r.summary()
 

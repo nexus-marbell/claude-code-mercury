@@ -26,9 +26,9 @@ configure_logging()
 logger = get_logger("main")
 
 app = FastAPI(title="mercury-agentic-claude-bridge")
-MERCURY_API_KEY = os.getenv("MERCURY_API_KEY", "")
-if not MERCURY_API_KEY:
-    logger.warning("MERCURY_API_KEY not set. Requests to Mercury will fail.")
+INCEPTION_API_KEY = os.getenv("INCEPTION_API_KEY", "")
+if not INCEPTION_API_KEY:
+    logger.warning("INCEPTION_API_KEY not set. Requests to Mercury will fail.")
 
 client = httpx.AsyncClient(base_url="https://api.inceptionlabs.ai/v1", timeout=120.0)
 
@@ -83,7 +83,7 @@ async def messages(request: Request):
         )
         dump_json("request", sanitize_request(openai_body))
 
-        headers = {"Authorization": f"Bearer {MERCURY_API_KEY}", "Content-Type": "application/json"}
+        headers = {"Authorization": f"Bearer {INCEPTION_API_KEY}", "Content-Type": "application/json"}
 
         if openai_body.get("stream"):
             return await _stream(openai_body, headers, bridge_warnings, start, model=openai_body.get("model", ""))
@@ -141,7 +141,7 @@ async def messages(request: Request):
         logger.exception("Bridge error: %s", e)
         return JSONResponse(status_code=500, content={
             "type": "error", "error": {"type": "api_error", "message": str(e),
-                                        "suggestion": "Retry the request. Check MERCURY_API_KEY."},
+                                        "suggestion": "Retry the request. Check INCEPTION_API_KEY."},
             "_links": {"retry": {"href": "/v1/messages", "method": "POST"}, "manifest": {"href": "/manifest"}}})
 
 

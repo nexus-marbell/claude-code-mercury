@@ -1,7 +1,7 @@
 """Live end-to-end tests for Issue #15 Categories 2-4.
 
 These tests hit the real Mercury API through the bridge's ASGI app.
-They require a valid MERCURY_API_KEY in the environment (or .env file).
+They require a valid INCEPTION_API_KEY in the environment (or .env file).
 
 Category 2 -- Live Request/Response:
   - Simple text request through the bridge, verify Anthropic response structure
@@ -35,7 +35,7 @@ import httpx
 import pytest
 import pytest_asyncio
 
-# Load .env before any app imports so MERCURY_API_KEY is available
+# Load .env before any app imports so INCEPTION_API_KEY is available
 from dotenv import load_dotenv
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
@@ -49,8 +49,8 @@ from main import app
 pytestmark = [pytest.mark.live]
 
 SKIP_NO_KEY = pytest.mark.skipif(
-    not os.getenv("MERCURY_API_KEY"),
-    reason="Requires MERCURY_API_KEY",
+    not os.getenv("INCEPTION_API_KEY"),
+    reason="Requires INCEPTION_API_KEY",
 )
 
 

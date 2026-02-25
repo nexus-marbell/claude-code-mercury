@@ -11,7 +11,10 @@ import json
 from typing import Any
 
 from bridge.logging_config import get_logger
-from translation.config import TranslationConfig, UNSUPPORTED_FEATURES, STRIPPED_FEATURES
+from translation.config import (
+    TranslationConfig, UNSUPPORTED_FEATURES, STRIPPED_FEATURES,
+    MERCURY_TEMP_MIN, MERCURY_TEMP_MAX,
+)
 from translation.tools import translate_tools as _translate_tools
 from enrichment.system_preamble import strip_anthropic_identity
 
@@ -43,8 +46,9 @@ def strip_thinking(request: dict[str, Any]) -> list[str]:
     for feature in STRIPPED_FEATURES:
         if feature in request and request[feature]:
             warnings.append(
-                f"'{feature}' parameter stripped. "
-                f"Mercury models reason internally; response quality is not affected."
+                f"'{feature}' parameter stripped and mapped to Mercury's native "
+                f"reasoning_effort='{_config.default_reasoning_effort}'. "
+                f"Mercury handles reasoning via its own reasoning_effort parameter."
             )
             del request[feature]
 
@@ -117,17 +121,43 @@ def anthropic_to_openai(request: dict[str, Any]) -> dict[str, Any]:
 
     messages.extend(translate_messages(request.get("messages", [])))
 
+    temperature = request.get("temperature", _config.default_temperature)
+    temperature = _clamp_temperature(temperature)
+
     result: dict[str, Any] = {
         "model": _config.resolve_model(request.get("model", "")),
         "messages": messages,
         "max_tokens": request.get("max_tokens", _config.default_max_tokens),
-        "temperature": request.get("temperature", _config.default_temperature),
+        "temperature": temperature,
         "stream": bool(request.get("stream")),
+        "reasoning_effort": _config.default_reasoning_effort,
+        "reasoning_summary": True,
     }
 
     tools = request.get("tools")
     result["tools"] = _translate_tools(tools) if tools else None
     return result
+
+
+def _clamp_temperature(temperature: float) -> float:
+    """Clamp temperature to Mercury 2's valid range (0.5-1.0).
+
+    Mercury 2 only accepts temperatures between 0.5 and 1.0.
+    Values outside this range are clamped with a debug log.
+    """
+    if temperature < MERCURY_TEMP_MIN:
+        logger.debug(
+            "Temperature %.2f below Mercury minimum; clamped to %.1f",
+            temperature, MERCURY_TEMP_MIN,
+        )
+        return MERCURY_TEMP_MIN
+    if temperature > MERCURY_TEMP_MAX:
+        logger.debug(
+            "Temperature %.2f above Mercury maximum; clamped to %.1f",
+            temperature, MERCURY_TEMP_MAX,
+        )
+        return MERCURY_TEMP_MAX
+    return temperature
 
 
 def translate_messages(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:

@@ -105,7 +105,7 @@ pip install -r requirements.txt
 
 # Configure
 cp .env.example .env
-# Edit .env: set MERCURY_API_KEY=your-key-here
+# Edit .env: set INCEPTION_API_KEY=your-key-here
 
 # Start the bridge
 python main.py
@@ -132,15 +132,16 @@ ANTHROPIC_BASE_URL=http://localhost:4000 claude
 ```bash
 pytest                          # All tests (no API key required)
 pytest -m "not live"            # Unit/integration only
-MERCURY_API_KEY=sk-... pytest   # Include live API tests
+INCEPTION_API_KEY=sk-... pytest   # Include live API tests
 ```
 
 ## Configuration
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `MERCURY_API_KEY` | -- | Your Inception Labs API key (required) |
+| `INCEPTION_API_KEY` | -- | Your Inception Labs API key (required) |
 | `MERCURY_MODEL` | `mercury-2` | Mercury model to use |
+| `MERCURY_REASONING_EFFORT` | `high` | Reasoning depth: `instant` / `low` / `medium` / `high` |
 | `ENRICHMENT_MODE` | `full` | `passthrough` / `structural` / `full` |
 | `PREAMBLE_ENABLED` | `true` | System prompt behavioral injection |
 | `IDENTITY_ENABLED` | `true` | Mercury identity assertion + Claude stripping |
@@ -180,11 +181,11 @@ This bridge was adapted from [claude-code-xai](https://github.com/vantasnerdan/c
 | Area | Grok Behavior | Mercury Behavior | Bridge Handling |
 |------|--------------|-------------------|-----------------|
 | **API endpoint** | `api.x.ai/v1` | `api.inceptionlabs.ai/v1` | Updated base URL |
-| **Auth env var** | `XAI_API_KEY` | `MERCURY_API_KEY` | Renamed |
+| **Auth env var** | `XAI_API_KEY` | `INCEPTION_API_KEY` | Renamed |
 | **Model names** | `grok-4`, `grok-4-1-fast-reasoning` | `mercury-2` | Updated MODEL_MAP |
 | **Model env var** | `GROK_MODEL` | `MERCURY_MODEL` | Renamed |
 | **Identity preamble** | "You are Grok (xAI)" | "You are Mercury 2 (Inception Labs)" | Updated |
-| **Thinking/reasoning** | Grok reasons internally, no control | Mercury has `reasoning_effort` param | Stripped (same as Grok -- Claude's `thinking` param is not Mercury's `reasoning_effort`) |
+| **Thinking/reasoning** | Grok reasons internally, no control | Mercury has `reasoning_effort` param | Claude's `thinking` stripped; Mercury's `reasoning_effort` injected (default: `high`) |
 
 ### Mercury-Specific Behavior to Be Aware Of
 
@@ -194,17 +195,16 @@ This bridge was adapted from [claude-code-xai](https://github.com/vantasnerdan/c
 - The bridge's streaming adapter handles this transparently -- the SSE event format is the same
 - Clients expecting low TTFT for perceived responsiveness should be aware of this trade-off
 
-**Reasoning Effort**: Mercury supports a `reasoning_effort` parameter with four levels: `instant`, `low`, `medium`, `high`. This is a Mercury-native parameter, separate from Anthropic's `thinking` parameter. The bridge currently strips Anthropic's `thinking` param (which Mercury does not understand) but does NOT inject Mercury's `reasoning_effort`. Future enhancement: map Anthropic thinking budget to Mercury reasoning effort levels.
+**Reasoning Effort**: Mercury supports a `reasoning_effort` parameter with four levels: `instant`, `low`, `medium`, `high`. The bridge injects `reasoning_effort` (default: `high`) and `reasoning_summary: true` into every request. Anthropic's `thinking` param is stripped and mapped to Mercury's native reasoning. Override via `MERCURY_REASONING_EFFORT` env var.
 
 **Max Output Tokens**: Mercury 2 supports up to 16,384 output tokens. Requests with `max_tokens` above this may be silently capped by the API. The bridge passes `max_tokens` through unchanged.
 
-**Temperature**: Early Mercury models required `temperature=0`. Mercury 2 supports standard temperature ranges, but behavior with high temperature values has not been extensively tested.
+**Temperature**: Mercury 2 supports temperatures in the range 0.5-1.0. The bridge clamps values outside this range automatically (with debug logging). Temperatures below 0.5 are clamped to 0.5; above 1.0 are clamped to 1.0.
 
 **Vision**: Mercury 2 is text-only (no image input). The bridge already rejects image content blocks with a clear error message, same as the Grok bridge.
 
 ### Not Yet Implemented
 
-- **Reasoning effort mapping**: No automatic translation from Anthropic's `thinking.budget_tokens` to Mercury's `reasoning_effort` levels
 - **Diffusion visualization**: Mercury's `diffusing` parameter (streams noisy tokens that refine into the final output) is not exposed through the bridge
 - **Mercury-edit model**: The `mercury-edit` model (code editing specialist for FIM/apply-edit) is not integrated -- the bridge always routes to `mercury-2`
 

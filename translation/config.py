@@ -40,10 +40,30 @@ DEGRADED_FEATURES: frozenset[str] = frozenset({
 # Features that fail loudly (raise NotImplementedError)
 UNSUPPORTED_FEATURES: frozenset[str] = frozenset()
 
-# Features stripped from requests (Mercury handles reasoning internally)
+# Features stripped from requests (mapped to Mercury's native reasoning_effort)
 STRIPPED_FEATURES: frozenset[str] = frozenset({
     "thinking",
 })
+
+# Valid reasoning_effort values for Mercury 2
+VALID_REASONING_EFFORTS: frozenset[str] = frozenset({
+    "instant", "low", "medium", "high",
+})
+
+# Mercury 2 temperature range
+MERCURY_TEMP_MIN: float = 0.5
+MERCURY_TEMP_MAX: float = 1.0
+
+
+def _resolve_reasoning_effort() -> str:
+    """Resolve reasoning_effort from env var with validation."""
+    value = os.getenv("MERCURY_REASONING_EFFORT", "high")
+    if value not in VALID_REASONING_EFFORTS:
+        raise ValueError(
+            f"Invalid MERCURY_REASONING_EFFORT='{value}'. "
+            f"Must be one of: {', '.join(sorted(VALID_REASONING_EFFORTS))}"
+        )
+    return value
 
 
 @dataclass(frozen=True)
@@ -53,11 +73,14 @@ class TranslationConfig:
     default_model: str = "mercury-2"
     default_temperature: float = 0.7
     default_max_tokens: int = 8192
+    default_reasoning_effort: str = field(
+        default_factory=_resolve_reasoning_effort
+    )
     system_prompt_preamble: str = field(
         default_factory=get_system_preamble
     )
-    mercury_api_key: str = field(
-        default_factory=lambda: os.getenv("MERCURY_API_KEY", "")
+    inception_api_key: str = field(
+        default_factory=lambda: os.getenv("INCEPTION_API_KEY", "")
     )
 
     def resolve_model(self, anthropic_model: str) -> str:
